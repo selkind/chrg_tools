@@ -1,0 +1,6 @@
+title = "Project Confgiuration"
+
+[database]
+host = "localhost"
+name = "hearings"
+user = "postgres"
