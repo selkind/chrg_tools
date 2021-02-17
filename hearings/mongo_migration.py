@@ -6,10 +6,6 @@ from load_project_env import ProjectEnv
 
 
 def main():
-    mdb_connection = MongoConnect.get_connection()
-    mdb = connection.test
-    mdb_cursor = mdb.voteview_members.find()
-    unique_keys = {}
     member_values = []
     nokken_values = []
     nominate_values = []
@@ -21,22 +17,32 @@ def main():
         'fname': 'name', 'nvotes_abs': 'nvotes_abs', 'nvotes_against_party': 'nvotes_against_party',
         'nvotes_party_split': 'nvotes_party_split', 'nvotes_yea_nay': 'nvotes_yea_nay', 'occupancy': 'occupancy',
         'party_code': 'party_code', 'served_as_speaker': 'served_as_speaker', 'state_abbrev': 'state_abbrev'
-        }
+    }
+
     nokken_schema_map = {'number_of_votes': 'nvotes', 'dim1': 'dim1', 'dim2': 'dim2'}
-    nominate_schema_map = {'number_of_votes': 'nvotes', 'dim1': 'dim1', 'dim2': 'dim2'}
+
+    nominate_schema_map = {
+        'geo_mean_probability': 'geo_mean_probability', 'dim1': 'dim1',
+        'dim2': 'dim2', 'log_likelihood': 'log_likelihood', 'number_of_errors': 'nerrors', 'number_of_votes': 'nvotes',
+        'total_number_of_votes': 'ntotal_votes'
+    }
+
+    mdb_connection = MongoConnect.get_connection()
+    mdb = mdb_connection.test
+    mdb_cursor = mdb.voteview_members.find()
+
     for i in mdb_cursor:
-        member = {member_schema_map[k]: i.get(k, None) for k in [
-            'icspr', 'congress', 'biography', 'born', 'chamber', 'congresses', 'congresses_house', 'congresses_senate',
-            'death_year', 'district_code', 'fname', 'nvotes_abs', 'nvotes_against_party', 'nvotes_party_split',
-            'nvotes_yea_nay', 'occupancy', 'party_code', 'served_as_speaker', 'state_abbrev']}
+        member = {member_schema_map[k]: i.get(k, None) for k in member_schema_map.keys()}
         member_id = int(str(member['icspr']) + str(member['congress']))
         member_values.append(member)
         if 'nokken' in i:
             nokken = {nokken_schema_map[k]: i['nokken'].get(k, None) for k in nokken_schema_map.keys()}
             nokken['member_id'] = member_id
+            nokken_values.append(nokken)
         if 'nominate' in i:
-            nominate =
-
+            nominate = {nominate_schema_map[k]: i['nominate'].get(k, None) for k in nominate_schema_map.keys()}
+            nominate['member_id'] = member_id
+            nominate_values.append(nominate)
 
     config = ProjectEnv.get_config()
     ProjectEnv.load_env()
@@ -48,6 +54,14 @@ def main():
                             password=os.getenv('DB_POSTGRES_PW'),
                             cursor_factory=psycopg2.extras.RealDictCursor
                             )
+    nokken_fields = nokken_schema_map.values()
+    nokken_fields.append('member_id')
+    nominate_fields = nokken_schema_map.values()
+    nominate_fields.append('member_id')
+
+    member_query = f"INSERT INTO mongo_members ({','.join(member_schema_map.values())}) VALUES %s"
+    nokken_query = f"INSERT INTO mongo_members ({','.join(nokken_fields)}) VALUES %s"
+    nominate_query = f"INSERT INTO mongo_members ({','.join(nominate_fields)}) VALUES %s"
 
     try:
         crs = conn.cursor()
