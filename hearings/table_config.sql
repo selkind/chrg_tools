@@ -22,43 +22,24 @@ CREATE TABLE IF NOT EXISTS hearings(
     parsed json
 );
 
-DO
-$$
-BEGIN
-    IF NOT EXISTS (SELECT * 
-                        FROM pg_type typ
-                            INNER JOIN pg_namespace nsp
-                                ON nsp.oid = typ.typnamespace
-                        WHERE nsp.nspname = current_schema()
-                            AND typ.typname = 'chamber' ) THEN
-        CREATE TYPE chamber 
-                    AS ENUM ('HOUSE', 'SENATE', 'JOINT', '');
-    END IF;
-END;
-$$
-LANGUAGE plpgsql;
-
 CREATE TABLE IF NOT EXISTS committees(
     id SERIAL PRIMARY KEY,
     name text,
-    chamber chamber,
-    code integer 
+    chamber text,
+    code text
 );
 
 CREATE TABLE IF NOT EXISTS mongo_members(
     id SERIAL PRIMARY KEY,
-    icspr integer,
+    icpsr integer,
     congress integer,
     biography text,
     birth_year integer,
-    chamber chamber,
-    congress_count integer,
+    chamber text,
     death_year integer,
-    house_count integer,
-    senate_count integer,
-    district_code integer,
+    district_code text,
     name text,
-    nabs_votes integer,
+    nvotes_abs integer,
     nvotes_against_party integer,
     nvotes_party_split integer,
     nvotes_yea_nay integer,
@@ -90,7 +71,7 @@ CREATE TABLE IF NOT EXISTS nominate(
 
 CREATE TABLE IF NOT EXISTS commitee_assignments(
     id SERIAL PRIMARY KEY,
-    icspr integer,
+    icpsr integer,
     code integer,
     congress integer,
     assign_date date,
