@@ -4,7 +4,7 @@ title = "Project Confgiuration"
 host = "localhost"
 name = "hearings"
 user = "postgres"
-table_config_path = "table_config.sql"
+table_config_path = "hearings/table_config.sql"
 
 [data]
 committee_path = "gpo_tools/gpo_tools/data/committee_data.csv"

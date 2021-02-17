@@ -65,31 +65,33 @@ CREATE TABLE IF NOT EXISTS mongo_members(
     occupancy integer,
     party_code integer,
     served_as_speaker integer,
-    state_abbrev text,
+    state_abbrev text
 );
 
 CREATE TABLE IF NOT EXISTS nokken_pool(
-    id integer PRIMARY KEY REFERENCES mongo_members(id),
+    id integer PRIMARY KEY,
+    member_id integer REFERENCES mongo_members(id),
     dim1 numeric,
     dim2 numeric,
     n_votes integer
 );
 
 CREATE TABLE IF NOT EXISTS nominate(
-    id integer PRIMARY KEY REFERENCES mongo_members(id),
+    id SERIAL PRIMARY KEY ,
+    member_id integer REFERENCES mongo_members(id),
     dim1 numeric,
     dim2 numeric,
     geo_mean_probability numeric,
     log_likelihood numeric,
     n_errors integer,
     n_votes integer,
-    n_total_votes integer,
-)
+    n_total_votes integer
+);
 
 CREATE TABLE IF NOT EXISTS commitee_assignments(
     id SERIAL PRIMARY KEY,
-    icspr integer REFERENCES mongo_members(icspr),
-    code integer REFERENCES committees(code),
+    icspr integer,
+    code integer,
     congress integer,
     assign_date date,
     termination_date date,

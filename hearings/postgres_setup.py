@@ -8,7 +8,8 @@ def main():
     config = ProjectEnv.get_config()
     db_config = config['database']
     # This script only works if database 'hearings' exists
-    with open(config['database']['table_config_path']) as sql_file:
+    print(db_config['table_config_path'])
+    with open(db_config['table_config_path']) as sql_file:
         sql = sql_file.read()
 
     conn = psycopg2.connect(database=db_config['name'],
