@@ -42,20 +42,55 @@ CREATE TABLE IF NOT EXISTS committees(
     id SERIAL PRIMARY KEY,
     name text,
     chamber chamber,
-    code text
+    code integer 
 );
 
-CREATE TABLE IF NOT EXISTS representatives(
-    id integer PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS mongo_members(
+    id SERIAL PRIMARY KEY,
+    icspr integer,
     congress integer,
-    majority_code
-
+    biography text,
+    birth_year integer,
+    chamber chamber,
+    congress_count integer,
+    death_year integer,
+    house_count integer,
+    senate_count integer,
+    district_code integer,
+    name text,
+    n_abs_votes integer,
+    n_votes_against_party integer,
+    n_votes_party_split integer,
+    n_votes_yea_nay integer,
+    occupancy integer,
+    party_code integer,
+    served_as_speaker integer,
+    state_abbrev text,
 );
+
+CREATE TABLE IF NOT EXISTS nokken_pool(
+    id integer PRIMARY KEY REFERENCES mongo_members(id),
+    dim1 numeric,
+    dim2 numeric,
+    n_votes integer
+);
+
+CREATE TABLE IF NOT EXISTS nominate(
+    id integer PRIMARY KEY REFERENCES mongo_members(id),
+    dim1 numeric,
+    dim2 numeric,
+    geo_mean_probability numeric,
+    log_likelihood numeric,
+    n_errors integer,
+    n_votes integer,
+    n_total_votes integer,
+)
+
 CREATE TABLE IF NOT EXISTS commitee_assignments(
     id SERIAL PRIMARY KEY,
+    icspr integer REFERENCES mongo_members(icspr),
+    code integer REFERENCES committees(code),
     congress integer,
-    code integer REFERENCES committees,
-    rep_id integer REFERENCES representatives,
     assign_date date,
     termination_date date,
     period_of_service integer,
