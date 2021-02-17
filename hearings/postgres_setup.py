@@ -1,7 +1,7 @@
 import toml
 from dotenv import load_dotenv
 import os
-import csv
+# import csv
 import psycopg2
 
 env_path = os.path.join(os.path.dirname(__file__), '.env')

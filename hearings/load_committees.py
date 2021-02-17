@@ -1,40 +1,44 @@
-import toml
-from dotenv import load_dotenv
 import os
 import csv
 import psycopg2
 import psycopg2.extras
+from load_project_env import ProjectEnv
 
-env_path = os.path.join(os.path.dirname(__file__), '.env')
-load_dotenv(env_path)
 
-config = toml.load(os.path.join(os.path.dirname(__file__), 'config.toml'))
-columns = ['name', 'code', 'chamber']
+def main():
+    ProjectEnv.load_env()
+    config = ProjectEnv.get_congfig()
 
-with open(config['data']['committee_path']) as f:
-    reader = csv.DictReader(f, fieldnames=columns)
-    data = []
-    for i in reader:
-        i['name'] = i['name'][i['name'].find('-') + 1:]
-        data.append(i)
+    columns = ['name', 'code', 'chamber']
 
-query = f"Insert INTO committees ({','.join(columns)}) VALUES %s"
-values = [[val for val in row.values()] for row in data]
+    with open(config['data']['committee_path']) as f:
+        reader = csv.DictReader(f, fieldnames=columns)
+        data = []
+        for i in reader:
+            i['name'] = i['name'][i['name'].find('-') + 1:]
+            data.append(i)
 
-db_config = config['database']
+    query = f"Insert INTO committees ({','.join(columns)}) VALUES %s"
+    values = [[val for val in row.values()] for row in data]
 
-conn = psycopg2.connect(database=db_config['name'],
-                        user=db_config['user'],
-                        host=db_config['host'],
-                        password=os.getenv('DB_POSTGRES_PW'))
+    db_config = config['database']
 
-try:
-    crs = conn.cursor()
-    psycopg2.extras.execute_values(crs, query, values)
-    conn.commit()
+    conn = psycopg2.connect(database=db_config['name'],
+                            user=db_config['user'],
+                            host=db_config['host'],
+                            password=os.getenv('DB_POSTGRES_PW'))
 
-except Exception as e:
-    print(e)
+    try:
+        crs = conn.cursor()
+        psycopg2.extras.execute_values(crs, query, values)
+        conn.commit()
 
-finally:
-    conn.close()
+    except Exception as e:
+        print(e)
+
+    finally:
+        conn.close()
+
+
+if __name__ == '__main__':
+    main()
