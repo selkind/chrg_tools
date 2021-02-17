@@ -10,5 +10,5 @@ class ProjectEnv:
         load_dotenv(env_path)
 
     @staticmethod
-    def get_congfig() -> dict:
+    def get_config() -> dict:
         return toml.load(os.path.join(os.path.dirname(__file__), 'config.toml'))

@@ -7,7 +7,7 @@ from load_project_env import ProjectEnv
 
 def main():
     ProjectEnv.load_env()
-    config = ProjectEnv.get_congfig()
+    config = ProjectEnv.get_config()
 
     columns = ['name', 'code', 'chamber']
 
