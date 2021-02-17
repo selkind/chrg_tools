@@ -58,34 +58,34 @@ CREATE TABLE IF NOT EXISTS mongo_members(
     senate_count integer,
     district_code integer,
     name text,
-    n_abs_votes integer,
-    n_votes_against_party integer,
-    n_votes_party_split integer,
-    n_votes_yea_nay integer,
+    nabs_votes integer,
+    nvotes_against_party integer,
+    nvotes_party_split integer,
+    nvotes_yea_nay integer,
     occupancy integer,
     party_code integer,
     served_as_speaker integer,
     state_abbrev text
 );
 
-CREATE TABLE IF NOT EXISTS nokken_pool(
-    id integer PRIMARY KEY,
-    member_id integer REFERENCES mongo_members(id),
+CREATE TABLE IF NOT EXISTS nokken_poole(
+    id SERIAL PRIMARY KEY,
+    member_id integer,
     dim1 numeric,
     dim2 numeric,
-    n_votes integer
+    nvotes integer
 );
 
 CREATE TABLE IF NOT EXISTS nominate(
-    id SERIAL PRIMARY KEY ,
-    member_id integer REFERENCES mongo_members(id),
+    id SERIAL PRIMARY KEY,
+    member_id integer,
     dim1 numeric,
     dim2 numeric,
     geo_mean_probability numeric,
     log_likelihood numeric,
-    n_errors integer,
-    n_votes integer,
-    n_total_votes integer
+    nerrors integer,
+    nvotes integer,
+    ntotal_votes integer
 );
 
 CREATE TABLE IF NOT EXISTS commitee_assignments(
