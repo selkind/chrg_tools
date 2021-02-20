@@ -67,9 +67,9 @@ def main():
 
     try:
         crs = conn.cursor()
-        # psycopg2.extras.execute_values(crs, member_query, member_values)
+        psycopg2.extras.execute_values(crs, member_query, member_values)
         psycopg2.extras.execute_values(crs, nokken_query, nokken_values)
-        # psycopg2.extras.execute_values(crs, nominate_query, nominate_values)
+        psycopg2.extras.execute_values(crs, nominate_query, nominate_values)
         conn.commit()
     except Exception as e:
         print(e)
