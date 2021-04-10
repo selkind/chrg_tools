@@ -59,13 +59,8 @@ class Parser:
 
         # select ID values from the database.
         if not id_values:
-            confirmation = eval(input('No ID values were given, so all IDs in the database will be processed. '
-                                      'Proceed y/(n)?'))
-            if confirmation == 'y':
-                cur.execute('select id from hearings')
-                self.id_values = [r[0] for r in cur.fetchall()]
-            else:
-                self.id_values = []
+            cur.execute('select id from hearings')
+            self.id_values = [r[0] for r in cur.fetchall()]
 
         else:
             # do some basic checking of user-inputted id values - not 100% comprehensive but should fairly broad

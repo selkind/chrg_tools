@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS commitee_assignments(
 
 CREATE TABLE IF NOT EXISTS old_parsed_hearing_statements(
     id SERIAL PRIMARY KEY,
+    speaker text,
     hearing_id text,
     member_id integer DEFAULT 0,
     statement text
