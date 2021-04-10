@@ -8,7 +8,6 @@ import sys
 from datetime import datetime
 from itertools import repeat
 
-import pkg_resources
 import psycopg2
 from gensim import corpora
 from nltk.corpus import stopwords
@@ -52,7 +51,8 @@ class Parser:
                 self.member_table[tuple(meta['Name'])].update(merge_two_dicts(meta, membership, id_val))
 
         # load the committee data file from the package resources
-        with open(pkg_resources.resource_filename('gpo_tools', 'data/committee_data.csv')) as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'committee_data.csv')) as f:
+
             self.committee_data = {row[0]: {'Code': row[1], 'Chamber': row[2]} for row in csv.reader(f)}
 
         self.results = []
