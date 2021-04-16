@@ -8,7 +8,7 @@ class TestDBConfig:
 
     @pytest.fixture
     def db(self):
-        with PostgresContainer('postgres:9.5') as db:
+        with PostgresContainer('postgres:latest') as db:
             e = sqlalchemy.create_engine(db.get_connection_url())
             Base.metadata.create_all(e)
             return e
