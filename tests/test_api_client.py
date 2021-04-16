@@ -18,6 +18,12 @@ class TestAPIClient:
     def api_client(self):
         return APIClient(self.TEST_API_KEY)
 
+    @pytest.fixture
+    def package_by_congress_pattern(self, api_client):
+        return re.compile(
+            f'{api_client.CHRG_ENDPOINT}\\?offset=([0]|[1-9][0-9]?00)&pageSize=100&congress=[0-9]+&api_key={self.TEST_API_KEY}'
+        )
+
     def test_get_adds_api_key_param(self, mocked_responses, api_client):
         mocked_responses.add(
             responses.GET,
@@ -30,36 +36,33 @@ class TestAPIClient:
         assert resp.status_code == 200
         assert mocked_responses.calls[0].request.params == {'api_key': self.TEST_API_KEY}
 
-    def test_get_package_ids_by_congress(self, mocked_responses, api_client):
+    def test_get_package_ids_by_congress_count_evenly_divides_plus_one(self, mocked_responses, api_client, package_by_congress_pattern):
         congress = 1
-        url_pattern = re.compile(f'{api_client.CHRG_ENDPOINT}\\?offset=[0-9]+&pageSize=100&congress={congress}&api_key={self.TEST_API_KEY}')
         mocked_responses.add(
             responses.GET,
-            url_pattern,
+            package_by_congress_pattern,
             json={'count': 301, 'packages': [{'packageId': 'abc'}, {'packageId': "123"}]},
             status=200
         )
         package_ids = api_client.get_package_ids_by_congress(congress)
         assert len(package_ids) == 8
 
-    def test_get_package_ids_by_congress_count_evenly_divides(self, mocked_responses, api_client):
+    def test_get_package_ids_by_congress_count_evenly_divides(self, mocked_responses, api_client, package_by_congress_pattern):
         congress = 1
-        url_pattern = re.compile(f'{api_client.CHRG_ENDPOINT}\\?offset=[0-9]+&pageSize=100&congress={congress}&api_key={self.TEST_API_KEY}')
         mocked_responses.add(
             responses.GET,
-            url_pattern,
+            package_by_congress_pattern,
             json={'count': 300, 'packages': [{'packageId': 'abc'}, {'packageId': "123"}]},
             status=200
         )
         package_ids = api_client.get_package_ids_by_congress(congress)
         assert len(package_ids) == 8
 
-    def test_get_package_ids_by_congress_count_evenly_divides_minus_one(self, mocked_responses, api_client):
+    def test_get_package_ids_by_congress_count_evenly_divides_minus_one(self, mocked_responses, api_client, package_by_congress_pattern):
         congress = 1
-        url_pattern = re.compile(f'{api_client.CHRG_ENDPOINT}\\?offset=[0-9]+&pageSize=100&congress={congress}&api_key={self.TEST_API_KEY}')
         mocked_responses.add(
             responses.GET,
-            url_pattern,
+            package_by_congress_pattern,
             json={'count': 299, 'packages': [{'packageId': 'abc'}, {'packageId': "123"}]},
             status=200
         )

@@ -34,10 +34,11 @@ class APIClient:
 
         first_json = first_response.json()
         packages = [i['packageId'] for i in first_json['packages']]
+        # Determine how many requests to make
         total_count = int(first_json['count'])
         iterations = total_count // self.DEFAULT_PAGE_SIZE + 1
         for i in range(1, iterations):
-            params['offset'] = str(i)
+            params['offset'] = str(i * self.DEFAULT_PAGE_SIZE)
             r = self._get(self.CHRG_ENDPOINT, params=params)
             try:
                 r.raise_for_status()
