@@ -7,11 +7,17 @@ class Hearing(Base):
     __tablename__ = 'hearing_summaries'
 
     id = Column(Integer, primary_key=True)
-    gpo_id = Column(String(25))
+    package_id = Column(String(25))
     congress = Column(Integer)
     session = Column(Integer)
     chamber = Column(String(10))
     date = Column(Date)
+    uri = Column(Text)
+    url = Column(Text)
+    sudoc = Column(Text)
+    number = Column(Text)
+    members = relationship('MemberAttendance', back_populates='hearing')
+    witnesses = relationship('HearingWitness', back_populates='hearing')
 
     committees = relationship('ParticipantCommittee', back_populates='hearing')
     subcommittees = relationship('ParticipantSubCommittee', back_populates='hearing')
@@ -54,3 +60,19 @@ class ParticipantSubCommittee(Base):
     hearing = relationship('Hearing', back_populates='subcommittees')
     subcommittee_id = Column(Integer, ForeignKey('subcommittees.id'))
     subcommittee = relationship('SubCommittee', back_populates='hearing_participation')
+
+
+class MemberAttendance(Base):
+    __tablename__ = 'member_attendance'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))
+    hearing_id = Column(Integer, ForeignKey('hearing_summaries.id'))
+    hearing = relationship('Hearing', back_populates='members')
+
+
+class HearingWitness(Base):
+    __tablename__ = 'hearing_witnesses'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))
+    hearing_id = Column(Integer, ForeignKey('hearing_summaries.id'))
+    hearing = relationship('Hearing', back_populates='witnesses')
