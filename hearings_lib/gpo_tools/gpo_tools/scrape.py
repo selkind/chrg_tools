@@ -1,5 +1,6 @@
 import json
 import re
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 import psycopg2
@@ -46,7 +47,7 @@ class Scraper:
                                 parsed json);
                           """)
 
-        elif set(table_names) != {'members', 'hearings'}:
+        elif 'members' not in table_names or 'hearings' not in table_names:
             raise ValueError(""" Improperly configured postgresql database given! Please give either a blank database
                                  or one that has been previously configured by this package.
                              """)
@@ -78,7 +79,10 @@ class Scraper:
                 if hearing['packageLink'] not in self.searched:
                     print(hearing['packageLink'])
 
-                    self._save_data(hearing)
+                    try:
+                        self._save_data(hearing)
+                    except (URLError, HTTPError):
+                        pass
                     self.searched.append(hearing['packageLink'])
 
     def _extract_nav(self, url_element):
@@ -208,7 +212,11 @@ class Scraper:
 
         hearing_id = hearing_json['packageId']
 
-        transcript = urlopen(htm_page.format(self.api_key, hearing_id)).read()
+        try:
+            transcript = urlopen(htm_page.format(self.api_key, hearing_id)).read()
+        except (HTTPError, URLError) as e:
+            print(f"{e}: {htm_page.format(self.api_key, hearing_id)} was invalid")
+            return
         meta = urlopen(mods_page.format(self.api_key, hearing_id)).read()
 
         transcript = re.sub('\x00', '', transcript.decode('utf8'))

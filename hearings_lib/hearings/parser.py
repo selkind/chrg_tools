@@ -34,7 +34,7 @@ class Parser:
     def speaker_count(self):
         return len(self.speakers)
 
-    def parse(self, transcript) -> None:
+    def parse(self, transcript_id, transcript) -> None:
         # clear out stored state for new transcript
         self.output = []
         self.speakers = []
@@ -60,22 +60,20 @@ class Parser:
             if end_line:
                 # must replace carriage return new lines first.
                 entry: str = self._make_entry(transcript[contribution_start: i])
-                self.output.append((speaker, entry))
                 break
 
             if statement or contribution:
                 if contribution_start:
                     entry = self._make_entry(transcript[contribution_start: i])
-                    self.output.append((speaker, entry))
                     speaker = self.config
                 speaker = self._configure_speaker(statement) if statement else self._configure_speaker(contribution)
                 contribution_start = i
 
-    def _configure_speaker(self, regex_match: re.MatchObject) -> NamedTuple:
+    def _configure_speaker(self, regex_match: re.MatchObject) -> None:
         name: str = f"{regex_match.group(1).replace('.', '')} {regex_match.group(2).replace('.', '').upper()}"
         if name not in self.speakers:
             self.speakers[name] = self._match_speaker_to_member_id(name)
-        return self.Speaker(name, self.speakers[name])
+        self.output.append()
 
     def _match_speaker_to_member_id(self, name: str) -> int:
         return 0

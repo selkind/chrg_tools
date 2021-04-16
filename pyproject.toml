@@ -12,6 +12,8 @@ gensim = "^4.0.1"
 nltk = "^3.6.1"
 python-dotenv = "^0.17.0"
 flake8 = "^3.9.0"
+bs4 = "^0.0.1"
+SQLAlchemy = "^1.4.8"
 
 [tool.poetry.dev-dependencies]
 
