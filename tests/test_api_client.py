@@ -1,4 +1,5 @@
 import os
+import re
 import pytest
 import responses
 from hearings_lib.hearings.load_project_env import ProjectEnv
@@ -29,6 +30,43 @@ class TestAPIClient:
         assert resp.status_code == 200
         assert mocked_responses.calls[0].request.params == {'api_key': self.TEST_API_KEY}
 
+    def test_get_package_ids_by_congress(self, mocked_responses, api_client):
+        congress = 1
+        url_pattern = re.compile(f'{api_client.CHRG_ENDPOINT}\\?offset=[0-9]+&pageSize=100&congress={congress}&api_key={self.TEST_API_KEY}')
+        mocked_responses.add(
+            responses.GET,
+            url_pattern,
+            json={'count': 301, 'packages': [{'packageId': 'abc'}, {'packageId': "123"}]},
+            status=200
+        )
+        package_ids = api_client.get_package_ids_by_congress(congress)
+        assert len(package_ids) == 8
+
+    def test_get_package_ids_by_congress_count_evenly_divides(self, mocked_responses, api_client):
+        congress = 1
+        url_pattern = re.compile(f'{api_client.CHRG_ENDPOINT}\\?offset=[0-9]+&pageSize=100&congress={congress}&api_key={self.TEST_API_KEY}')
+        mocked_responses.add(
+            responses.GET,
+            url_pattern,
+            json={'count': 300, 'packages': [{'packageId': 'abc'}, {'packageId': "123"}]},
+            status=200
+        )
+        package_ids = api_client.get_package_ids_by_congress(congress)
+        assert len(package_ids) == 8
+
+    def test_get_package_ids_by_congress_count_evenly_divides_minus_one(self, mocked_responses, api_client):
+        congress = 1
+        url_pattern = re.compile(f'{api_client.CHRG_ENDPOINT}\\?offset=[0-9]+&pageSize=100&congress={congress}&api_key={self.TEST_API_KEY}')
+        mocked_responses.add(
+            responses.GET,
+            url_pattern,
+            json={'count': 299, 'packages': [{'packageId': 'abc'}, {'packageId': "123"}]},
+            status=200
+        )
+        package_ids = api_client.get_package_ids_by_congress(congress)
+        assert len(package_ids) == 6
+
+    @pytest.mark.webtest
     def test_api_response_for_huge_offset(self):
         ProjectEnv.load_env()
         api_client = APIClient(os.getenv('GPO_API_KEY'))
