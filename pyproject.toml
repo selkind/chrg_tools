@@ -16,6 +16,7 @@ bs4 = "^0.0.1"
 SQLAlchemy = "^1.4.8"
 testcontainers = {extras = ["postgres"], version = "^3.4.0"}
 pytest = "^6.2.3"
+responses = "^0.13.2"
 
 [tool.poetry.dev-dependencies]
 
