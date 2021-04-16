@@ -14,6 +14,8 @@ python-dotenv = "^0.17.0"
 flake8 = "^3.9.0"
 bs4 = "^0.0.1"
 SQLAlchemy = "^1.4.8"
+testcontainers = {extras = ["postgres"], version = "^3.4.0"}
+pytest = "^6.2.3"
 
 [tool.poetry.dev-dependencies]
 
