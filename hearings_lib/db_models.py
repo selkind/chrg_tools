@@ -8,16 +8,18 @@ class Hearing(Base):
 
     id = Column(Integer, primary_key=True)
     package_id = Column(String(25))
+    title = Column(String(300))
     congress = Column(Integer)
     session = Column(Integer)
     chamber = Column(String(10))
-    date = Column(Date)
     uri = Column(Text)
     url = Column(Text)
     sudoc = Column(Text)
     number = Column(Text)
     members = relationship('MemberAttendance', back_populates='hearing')
     witnesses = relationship('HearingWitness', back_populates='hearing')
+
+    dates_held = relationship('HeldDate', back_populates='hearing')
 
     committees = relationship('ParticipantCommittee', back_populates='hearing')
     subcommittees = relationship('ParticipantSubCommittee', back_populates='hearing')
@@ -76,3 +78,11 @@ class HearingWitness(Base):
     name = Column(String(50))
     hearing_id = Column(Integer, ForeignKey('hearing_summaries.id'))
     hearing = relationship('Hearing', back_populates='witnesses')
+
+
+class HeldDate(Base):
+    __tablename__ = 'hearing_dates'
+    id = Column(Integer, primary_key=True)
+    date = Column(Date)
+    hearing_id = Column(Integer, ForeignKey('hearing_summaries.id'))
+    hearing = relationship('Hearing', back_populates='dates_held')

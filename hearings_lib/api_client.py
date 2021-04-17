@@ -2,6 +2,8 @@ import requests
 import datetime
 from typing import Optional, Dict, List
 import logging
+import lxml
+import db_models
 
 
 class APIClient:
@@ -17,6 +19,28 @@ class APIClient:
         self.logger.addHandler(logging.StreamHandler())
         self.logger.setLevel(logging.INFO)
         self.api_key: str = api_key
+
+    def get_package_summaries(self, packages: List[Dict]) -> List[Dict]:
+        summaries = []
+        for i in packages:
+            title = i['title']
+            package_id = i['packageId']
+            congress = int(i['congress'])
+
+            if i['packageLink'] is None:
+                self.logger.info(f'Package {i["packageId"]} had no link to summary, adding skeleton entry to database')
+                summaries.append({'title': title, 'packageId': package_id, 'congress': congress})
+                continue
+
+            r = self._get(i['packageLink'])
+            try:
+                r.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                self.logger.info(f'{r.url} returned error: {e}')
+                # potentially add this url to a retry list.
+
+            summaries.append(r.json())
+        return summaries
 
     def get_package_ids_by_congress(self, congress: int) -> List[Dict]:
         params = {
