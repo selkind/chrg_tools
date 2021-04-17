@@ -36,7 +36,12 @@ class TestAPIClient:
         assert resp.status_code == 200
         assert mocked_responses.calls[0].request.params == {'api_key': self.TEST_API_KEY}
 
-    def test_get_package_ids_by_congress_count_evenly_divides_plus_one(self, mocked_responses, api_client, package_by_congress_pattern):
+    def test_get_package_ids_by_congress_count_evenly_divides_plus_one(
+        self,
+        mocked_responses,
+        api_client,
+        package_by_congress_pattern
+    ):
         congress = 1
         mocked_responses.add(
             responses.GET,
@@ -47,7 +52,12 @@ class TestAPIClient:
         package_ids = api_client.get_package_ids_by_congress(congress)
         assert len(package_ids) == 8
 
-    def test_get_package_ids_by_congress_count_evenly_divides(self, mocked_responses, api_client, package_by_congress_pattern):
+    def test_get_package_ids_by_congress_count_evenly_divides(
+        self,
+        mocked_responses,
+        api_client,
+        package_by_congress_pattern
+    ):
         congress = 1
         mocked_responses.add(
             responses.GET,
@@ -58,7 +68,12 @@ class TestAPIClient:
         package_ids = api_client.get_package_ids_by_congress(congress)
         assert len(package_ids) == 8
 
-    def test_get_package_ids_by_congress_count_evenly_divides_minus_one(self, mocked_responses, api_client, package_by_congress_pattern):
+    def test_get_package_ids_by_congress_count_evenly_divides_minus_one(
+        self,
+        mocked_responses,
+        api_client,
+        package_by_congress_pattern
+    ):
         congress = 1
         mocked_responses.add(
             responses.GET,
