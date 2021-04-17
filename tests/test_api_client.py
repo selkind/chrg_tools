@@ -21,7 +21,7 @@ class TestAPIClient:
     @pytest.fixture
     def package_by_congress_pattern(self, api_client):
         return re.compile(
-            f'{api_client.CHRG_ENDPOINT}\\?offset=([0]|[1-9][0-9]?00)&pageSize=100&congress=[0-9]+&api_key={self.TEST_API_KEY}'
+            f'{api_client.CHRG_ENDPOINT}\\?congress=[0-9]+&offset=([0]|[1-9][0-9]?00)&pageSize=100&api_key={self.TEST_API_KEY}'
         )
 
     def test_get_adds_api_key_param(self, mocked_responses, api_client):
