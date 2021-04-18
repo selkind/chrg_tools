@@ -3,6 +3,7 @@ import datetime
 from typing import Optional, Dict, List
 import logging
 from lxml import etree
+import db_models
 
 
 class APIClient:
@@ -22,13 +23,14 @@ class APIClient:
     def get_package_summaries(self, packages: List[Dict]) -> List[Dict]:
         summaries = []
         for i in packages:
-            title = i['title']
-            package_id = i['packageId']
-            congress = int(i['congress'])
+            hearing = db_models.Hearing()
+            hearing.title = i['title']
+            hearing.package_id = i['packageId']
+            hearing.congress = int(i['congress'])
 
             if i['packageLink'] is None:
                 self.logger.info(f'Package {i["packageId"]} had no link to summary, adding skeleton entry to database')
-                summaries.append({'title': title, 'packageId': package_id, 'congress': congress})
+                summaries.append(hearing)
                 continue
 
             r = self._get(i['packageLink'])
@@ -44,6 +46,7 @@ class APIClient:
             except KeyError:
                 self.logger.info(f'{package_id} has no mods Link, no witness or committee data collected')
             else:
+                hearing.url = i['packageLink']
                 mods_page = self._make_mods_request(mods_link)
                 mods = self._get_mod_fields(mods_page) if mods_page else {}
 
@@ -69,9 +72,26 @@ class APIClient:
             '//ns:extension/ns:congMember',
             namespaces={'ns': namespace}
         )
-        member_meta = self._parse_members_elements
-        
-    def _parse_member_elements(self, members) -> List[Dict]:
+        member_meta = self._parse_members_elements(members, namespace)
+        committees = root.xpath(
+            '//ns:extension/ns:congCommiittee',
+            namespaces={'ns': namespace}
+        )
+
+    def _parse_member_elements(self, members, namespace) -> List[Dict]:
+        member_meta = []
+        for i in members:
+            name = i.xpath('//ns:name[@type="authority-lnf"]', namespaces=namespaces)
+            meta = {j: i.attrib.get(j) for j in ['chamber', 'party', 'congress', 'state']}
+            member = db_models.MemberAttendance(
+                name=name,
+                chamber=meta['chamber'],
+                party=meta['party'],
+                state=meta['state'],
+                congress=int(meta['congress'])
+            )
+            member_meta.append(member)
+        return member_meta
 
 
     def get_package_ids_by_congress(self, congress: int) -> Dict:

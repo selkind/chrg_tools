@@ -68,6 +68,12 @@ class MemberAttendance(Base):
     __tablename__ = 'member_attendance'
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
+    chamber = Column(String(10))
+    party = Column(String(1))
+    congress = Column(Integer)
+    state = Column(String(30))
+
+
     hearing_id = Column(Integer, ForeignKey('hearing_summaries.id'))
     hearing = relationship('Hearing', back_populates='members')
 
