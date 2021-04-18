@@ -8,6 +8,7 @@ from hearings_lib.api_client import APIClient
 
 class TestAPIClient:
     TEST_API_KEY = "1234abc"
+    TEST_MODS_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "example_mods.xml")
 
     @pytest.fixture
     def mocked_responses(self):
@@ -23,6 +24,11 @@ class TestAPIClient:
         return re.compile(
             f'{api_client.CHRG_ENDPOINT}\\?congress=[0-9]+&offset=([0]|[1-9][0-9]?00)&pageSize=100&api_key={self.TEST_API_KEY}'
         )
+
+    @pytest.fixture
+    def test_mods_content(self):
+        with open(self.TEST_MODS_PATH, 'r') as f:
+            return f.read()
 
     def test_get_adds_api_key_param(self, mocked_responses, api_client):
         mocked_responses.add(
@@ -83,6 +89,10 @@ class TestAPIClient:
         )
         package_ids = api_client.get_package_ids_by_congress(congress)
         assert len(package_ids) == 6
+
+    def test_select_members_from_xml(self, test_mods_content, api_client):
+        members = api_client._get_mod_fields(test_mods_content)
+        assert len(members) == 7
 
     @pytest.mark.webtest
     def test_api_response_for_huge_offset(self):

@@ -1,0 +1,288 @@
+<mods xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:exslt="http://exslt.org/common" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.loc.gov/mods/v3" version="3.3" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-3.xsd" ID="P0b002ee19deb3aa4">
+<name type="corporate">
+ <namePart>United States Government Publishing Office</namePart>
+ <role>
+  <roleTerm authority="marcrelator" type="text">publisher</roleTerm>
+  <roleTerm authority="marcrelator" type="code">pbl</roleTerm>
+</role>
+ <role>
+  <roleTerm authority="marcrelator" type="text">distributor</roleTerm>
+  <roleTerm authority="marcrelator" type="code">dst</roleTerm>
+</role>
+</name>
+<name type="corporate">
+ <namePart>United States</namePart>
+ <namePart>Congress</namePart>
+ <namePart>Senate</namePart>
+ <role>
+  <roleTerm authority="marcrelator" type="text">author</roleTerm>
+  <roleTerm authority="marcrelator" type="code">aut</roleTerm>
+</role>
+ <description>Government Organization</description>
+</name>
+<typeOfResource>text</typeOfResource>
+<genre authority="marcgt">government publication</genre>
+<language>
+ <languageTerm type="code" authority="iso639-2b">eng</languageTerm>
+</language>
+<extension>
+ <collectionCode>CHRG</collectionCode>
+ <category>Congressional Committee Materials</category>
+ <branch>legislative</branch>
+ <dateIngested>2018-11-27</dateIngested>
+</extension>
+<titleInfo>
+ <title>Presidential campaign activities of 1972, Senate resolution 60. Book 26, Exhibits relating to Chapter 8 of the Final Report: appendix to the Hughes-Rebozo Investigation of the Select Committee on Presidential Campaign Activities, United States Senate, Ninety-third Congress, second session.</title>
+</titleInfo>
+<titleInfo type="alternative"/>
+<location>
+ <url displayLabel="Content Detail" access="object in context">https://www.govinfo.gov/app/details/CHRG-93shrg39340Ob26</url>
+ <url displayLabel="PDF rendition" access="raw object">https://www.govinfo.gov/content/pkg/CHRG-93shrg39340Ob26/pdf/CHRG-93shrg39340Ob26.pdf</url>
+</location>
+<originInfo>
+ <publisher>U.S. Government Publishing Office</publisher>
+ <dateIssued encoding="w3cdtf">1973-05-17</dateIssued>
+ <issuance>monographic</issuance>
+</originInfo>
+<physicalDescription>
+ <note type="source content type">deposited</note>
+ <digitalOrigin>reformatted digital</digitalOrigin>
+ <extent>548 p.</extent>
+</physicalDescription>
+<classification authority="sudocs">Y 4.P 92/4:P 92/BK.26</classification>
+<identifier type="uri">https://www.govinfo.gov/app/details/CHRG-93shrg39340Ob26</identifier>
+<identifier type="local">P0b002ee19deb3aa4</identifier>
+<identifier type="ILS system id">000148203</identifier>
+<recordInfo>
+ <recordContentSource authority="marcorg">DGPO</recordContentSource>
+ <recordCreationDate encoding="w3cdtf">2018-11-27</recordCreationDate>
+ <recordChangeDate encoding="w3cdtf">2019-12-31</recordChangeDate>
+ <recordIdentifier source="DGPO">CHRG-93shrg39340Ob26</recordIdentifier>
+ <recordOrigin>machine generated</recordOrigin>
+ <languageOfCataloging>
+  <languageTerm type="code" authority="iso639-2b">eng</languageTerm>
+</languageOfCataloging>
+</recordInfo>
+<accessCondition type="GPO scope determination">fdlp</accessCondition>
+<extension>
+ <docClass>SHRG</docClass>
+ <accessId>CHRG-93shrg39340Ob26</accessId>
+ <type>G</type>
+ <chamber>SENATE</chamber>
+ <congress>93</congress>
+ <session>2</session>
+ <heldDate>1973-05-17</heldDate>
+ <heldDate>1973-05-18</heldDate>
+ <heldDate>1973-05-22</heldDate>
+ <heldDate>1973-05-23</heldDate>
+ <heldDate>1973-05-24</heldDate>
+ <heldDate>1973-06-06</heldDate>
+ <heldDate>1973-06-07</heldDate>
+ <heldDate>1973-06-12</heldDate>
+ <heldDate>1973-06-13</heldDate>
+ <heldDate>1973-06-14</heldDate>
+ <heldDate>1973-06-25</heldDate>
+ <heldDate>1973-06-26</heldDate>
+ <heldDate>1973-07-18</heldDate>
+ <heldDate>1973-07-19</heldDate>
+ <heldDate>1973-07-20</heldDate>
+ <heldDate>1973-07-23</heldDate>
+ <heldDate>1973-07-24</heldDate>
+ <heldDate>1973-07-25</heldDate>
+ <heldDate>1973-07-26</heldDate>
+ <heldDate>1973-07-27</heldDate>
+ <heldDate>1973-07-30</heldDate>
+ <heldDate>1973-11-01</heldDate>
+ <heldDate>1973-11-06</heldDate>
+ <heldDate>1973-11-07</heldDate>
+ <heldDate>1973-11-08</heldDate>
+ <heldDate>1973-11-13</heldDate>
+ <heldDate>1973-11-14</heldDate>
+ <heldDate>1973-11-15</heldDate>
+ <heldDate>1973-12-14</heldDate>
+ <heldDate>1973-12-18</heldDate>
+ <heldDate>1973-12-19</heldDate>
+ <heldDate>1973-12-20</heldDate>
+ <heldDate>1973-12-21</heldDate>
+ <heldDate>1974-01-09</heldDate>
+ <heldDate>1974-01-10</heldDate>
+ <heldDate>1974-01-25</heldDate>
+ <heldDate>1974-01-28</heldDate>
+ <heldDate>1974-01-31</heldDate>
+ <heldDate>1974-02-05</heldDate>
+ <heldDate>1974-02-07</heldDate>
+ <heldDate>1974-02-08</heldDate>
+ <heldDate>1974-02-20</heldDate>
+ <heldDate>1974-02-21</heldDate>
+ <heldDate>1974-03-11</heldDate>
+ <heldDate>1974-03-12</heldDate>
+ <heldDate>1974-03-13</heldDate>
+ <heldDate>1974-03-20</heldDate>
+ <heldDate>1974-03-22</heldDate>
+ <heldDate>1974-03-25</heldDate>
+ <heldDate>1974-03-26</heldDate>
+ <heldDate>1974-05-21</heldDate>
+ <heldDate>1974-05-31</heldDate>
+ <heldDate>1974-06-13</heldDate>
+ <heldDate>1974-04-08</heldDate>
+ <heldDate>1974-05-28</heldDate>
+ <heldDate>1974-03-16</heldDate>
+ <heldDate>1974-03-21</heldDate>
+ <heldDate>1974-03-23</heldDate>
+ <heldDate>1974-03-28</heldDate>
+ <heldDate>1974-04-01</heldDate>
+ <heldDate>1974-04-10</heldDate>
+ <heldDate>1974-04-11</heldDate>
+ <heldDate>1974-04-15</heldDate>
+ <heldDate>1974-04-16</heldDate>
+ <heldDate>1974-04-29</heldDate>
+ <heldDate>1974-05-02</heldDate>
+ <heldDate>1974-05-05</heldDate>
+ <heldDate>1974-05-07</heldDate>
+ <heldDate>1974-05-10</heldDate>
+ <heldDate>1974-05-13</heldDate>
+ <heldDate>1974-05-15</heldDate>
+ <heldDate>1974-05-17</heldDate>
+ <heldDate>1974-05-22</heldDate>
+ <heldDate>1974-05-29</heldDate>
+ <heldDate>1974-06-06</heldDate>
+ <heldDate>1974-06-10</heldDate>
+ <heldDate>1974-06-11</heldDate>
+ <heldDate>1974-06-12</heldDate>
+ <heldDate>1974-06-14</heldDate>
+ <heldDate>1973-10-05</heldDate>
+ <heldDate>1973-10-18</heldDate>
+ <heldDate>1973-10-23</heldDate>
+ <heldDate>1973-10-24</heldDate>
+ <heldDate>1973-11-12</heldDate>
+ <heldDate>1973-11-19</heldDate>
+ <heldDate>1973-12-04</heldDate>
+ <heldDate>1973-06-05</heldDate>
+ <submittedMetadata>historical</submittedMetadata>
+</extension>
+<extension>
+ <searchTitle>Presidential campaign activities of 1972, Senate resolution 60. Book 26, Exhibits relating to Chapter 8 of the Final Report: appendix to the Hughes-Rebozo Investigation of the Select Committee on Presidential Campaign Activities, United States Senate, Ninety-third Congress, second session.</searchTitle>
+ <granuleClass>OTHERPART</granuleClass>
+ <accessId>CHRG-93shrg39340Ob26</accessId>
+ <classification authority="sudocs">Y 4.P 92/4:P 92/BK. 26</classification>
+ <heading>Book 26</heading>
+ <bookNumber>26</bookNumber>
+ <isAppropriation>false</isAppropriation>
+ <jacketId>39-340 O</jacketId>
+ <congCommittee authorityId="slzp00" chamber="S" congress="93" type="L">
+                          <name type="authority-standard">Select Committee on Presidential Campaign Activities</name>
+                          <name type="authority-short">Watergate</name>
+                    </congCommittee>
+ <congMember authorityId="1326" bioGuideId="E000211" chamber="S" congress="93" party="D" role="COMMMEMBER" state="NC">
+                          <name type="authority-fnf">Sam J. Ervin Jr.</name>
+                          <name type="authority-lnf">Ervin, Sam J., Jr.</name>
+                    </congMember>
+ <congMember authorityId="1275" bioGuideId="B000063" chamber="S" congress="93" party="R" role="COMMMEMBER" state="TN">
+                          <name type="authority-fnf">Howard H. Baker Jr.</name>
+                          <name type="authority-lnf">Baker, Howard H., Jr.</name>
+                    </congMember>
+ <congMember authorityId="1446" bioGuideId="T000035" chamber="S" congress="93" party="D" role="COMMMEMBER" state="GA">
+                          <name type="authority-fnf">Herman E. Talmadge</name>
+                          <name type="authority-lnf">Talmadge, Herman E.</name>
+                    </congMember>
+ <congMember authorityId="1345" bioGuideId="G000531" chamber="S" congress="93" party="R" role="COMMMEMBER" state="FL">
+                          <name type="authority-fnf">Edward J. Gurney</name>
+                          <name type="authority-lnf">Gurney, Edward J.</name>
+                    </congMember>
+ <congMember authorityId="1369" bioGuideId="I000025" chamber="S" congress="93" gpoId="8321" party="D" role="COMMMEMBER" state="HI">
+                          <name type="authority-fnf">Daniel K. Inouye</name>
+                          <name type="authority-lnf">Inouye, Daniel K.</name>
+                    </congMember>
+ <congMember authorityId="1453" bioGuideId="W000253" chamber="S" congress="93" party="R" role="COMMMEMBER" state="CT">
+                          <name type="authority-fnf">Lowell P. Weicker Jr.</name>
+                          <name type="authority-lnf">Weicker, Lowell P., Jr.</name>
+                    </congMember>
+ <congMember authorityId="1403" bioGuideId="M000876" chamber="S" congress="93" party="D" role="COMMMEMBER" state="NM">
+                          <name type="authority-fnf">Joseph M. Montoya</name>
+                          <name type="authority-lnf">Montoya, Joseph M.</name>
+                    </congMember>
+ <bill congress="93" context="BODY" number="60" type="SRES"/>
+ <isNomination>false</isNomination>
+ <isErrata>false</isErrata>
+</extension>
+<name type="corporate">
+ <namePart>United States</namePart>
+ <namePart>Congress</namePart>
+ <namePart>Senate</namePart>
+ <namePart>Select Committee on Presidential Campaign Activities</namePart>
+ <role>
+  <roleTerm authority="marcrelator" type="text">associated name</roleTerm>
+  <roleTerm authority="marcrelator" type="code">asn</roleTerm>
+</role>
+ <description>Government Organization</description>
+</name>
+<name type="personal">
+ <namePart>Sam J. Ervin Jr.</namePart>
+ <affiliation>United States Senate</affiliation>
+ <role>
+  <roleTerm type="text">committee member</roleTerm>
+</role>
+ <description>United States Congressional Member</description>
+</name>
+<name type="personal">
+ <namePart>Howard H. Baker Jr.</namePart>
+ <affiliation>United States Senate</affiliation>
+ <role>
+  <roleTerm type="text">committee member</roleTerm>
+</role>
+ <description>United States Congressional Member</description>
+</name>
+<name type="personal">
+ <namePart>Herman E. Talmadge</namePart>
+ <affiliation>United States Senate</affiliation>
+ <role>
+  <roleTerm type="text">committee member</roleTerm>
+</role>
+ <description>United States Congressional Member</description>
+</name>
+<name type="personal">
+ <namePart>Edward J. Gurney</namePart>
+ <affiliation>United States Senate</affiliation>
+ <role>
+  <roleTerm type="text">committee member</roleTerm>
+</role>
+ <description>United States Congressional Member</description>
+</name>
+<name type="personal">
+ <namePart>Daniel K. Inouye</namePart>
+ <affiliation>United States Senate</affiliation>
+ <role>
+  <roleTerm type="text">committee member</roleTerm>
+</role>
+ <description>United States Congressional Member</description>
+</name>
+<name type="personal">
+ <namePart>Lowell P. Weicker Jr.</namePart>
+ <affiliation>United States Senate</affiliation>
+ <role>
+  <roleTerm type="text">committee member</roleTerm>
+</role>
+ <description>United States Congressional Member</description>
+</name>
+<name type="personal">
+ <namePart>Joseph M. Montoya</namePart>
+ <affiliation>United States Senate</affiliation>
+ <role>
+  <roleTerm type="text">committee member</roleTerm>
+</role>
+ <description>United States Congressional Member</description>
+</name>
+<relatedItem type="isReferencedBy">
+ <identifier type="Jacket citation"/>
+</relatedItem>
+<relatedItem type="isReferencedBy">
+ <titleInfo>
+  <title>United States Senate Resolution 60 (93rd Congress)</title>
+</titleInfo>
+ <identifier type="Congressional Bill citation">S. Res. 60</identifier>
+ <extension>
+  <congress>93</congress>
+  <context>BODY</context>
+</extension>
+</relatedItem>
+</mods>

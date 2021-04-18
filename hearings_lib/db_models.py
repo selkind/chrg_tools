@@ -30,7 +30,7 @@ class Committee(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text)
     chamber = Column(String(10))
-    code = Column(Integer, unique=True)
+    code = Column(String(15), unique=True)
 
     subcommittees = relationship('SubCommittee', back_populates='committee')
     hearing_participation = relationship('ParticipantCommittee', back_populates='committee')
@@ -40,7 +40,7 @@ class SubCommittee(Base):
     __tablename__ = 'subcommittees'
     id = Column(Integer, primary_key=True)
     name = Column(Text)
-    committee_code = Column(Integer, ForeignKey('committees.code'))
+    committee_code = Column(String(15), ForeignKey('committees.code'))
 
     committee = relationship('Committee', back_populates='subcommittees')
     hearing_particpation = relationship('ParticipantSubCommittee', back_populates='subcommittee')
