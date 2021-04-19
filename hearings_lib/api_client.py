@@ -1,9 +1,10 @@
 import requests
 import datetime
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, NamedTuple
 import logging
 from lxml import etree
 import db_models
+from collections import namedtuple
 
 
 class APIClient:
@@ -67,32 +68,58 @@ class APIClient:
         root = etree.XML(content)
         # I think lxml is failing to parse the namespace xmlns without a colon. Hence None is the key for the
         # namespace. I should post an issue to the api
-        namespace = root.nsmap[None]
+        namespace = {'ns': root.nsmap[None]}
         members = root.xpath(
             '//ns:extension/ns:congMember',
-            namespaces={'ns': namespace}
+            namespaces=namespace
         )
         member_meta = self._parse_members_elements(members, namespace)
         committees = root.xpath(
-            '//ns:extension/ns:congCommiittee',
-            namespaces={'ns': namespace}
+            '//ns:extension/ns:congCommittee',
+            namespaces=namespace
         )
+        committee_meta = self._parse_committee_elements(committees, namespace)
+        witnesses = root.xpath('//ns:extension/ns:witness', namespaces=namespace)
 
-    def _parse_member_elements(self, members, namespace) -> List[Dict]:
+    def _parse_member_elements(
+        self,
+        members: etree._Element,
+        namespace: Dict[str, str]
+    ) -> List[db_models.MemberAttendance]:
+
         member_meta = []
         for i in members:
-            name = i.xpath('//ns:name[@type="authority-lnf"]', namespaces=namespaces)
-            meta = {j: i.attrib.get(j) for j in ['chamber', 'party', 'congress', 'state']}
+            name = i.xpath('//ns:name[@type="authority-lnf"]', namespaces=namespace)
             member = db_models.MemberAttendance(
                 name=name,
-                chamber=meta['chamber'],
-                party=meta['party'],
-                state=meta['state'],
-                congress=int(meta['congress'])
+                chamber=i.attrib.get('chamber'),
+                party=i.attrib.get('party'),
+                state=i.attrib.get('state'),
+                congress=int(i.attrib.get('congress'))
             )
             member_meta.append(member)
         return member_meta
 
+    def _parse_committee_elements(
+        self,
+        committees,
+        namespace
+    ) -> List[NamedTuple[str, str, int, List[str]]]:
+        committee_meta = []
+        ParsedCommittee = namedtuple('ParsedCommitte', ['name', 'chamber', 'congress', 'subcommittees'])
+
+        for i in committees:
+            committee_name = i.xpath('/ns:name[@type="authority-standard"]', namespaces=namespace)
+            sub_committee_names = i.xpath('/ns:subCommittee/ns:name[@type="parsed"]')
+            committee_meta.append(
+                ParsedCommittee(
+                    name=committee_name,
+                    chamber=i.attrib.get('chamber'),
+                    congress=int(i.attrib.get('congress')),
+                    subcommittees=sub_committee_names
+                )
+            )
+        return committee_meta
 
     def get_package_ids_by_congress(self, congress: int) -> Dict:
         params = {
