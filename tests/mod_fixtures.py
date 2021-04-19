@@ -2,7 +2,7 @@ import pytest
 from hearings_lib.summary_parsing_types import ParsedMember, ParsedCommittee, ParsedModsData
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def expected_parsed_committees():
     return [
         ParsedCommittee(

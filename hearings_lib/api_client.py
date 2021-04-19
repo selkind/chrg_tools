@@ -115,14 +115,14 @@ class APIClient:
             '//ns:extension/ns:congMember',
             namespaces=namespace
         )
-        member_meta = self._parse_members_elements(members, namespace)
+        member_meta = self._parse_member_elements(members, namespace)
         committees = root.xpath(
             '//ns:extension/ns:congCommittee',
             namespaces=namespace
         )
         committee_meta = self._parse_committee_elements(committees, namespace)
-        witnesses = root.xpath('//ns:extension/ns:witness', namespaces=namespace)
-        uri = root.xpath('//ns:identifier[@type="uri"]', namespaces=namespace)
+        witnesses = [i.text for i in root.xpath('//ns:extension/ns:witness', namespaces=namespace)]
+        uri = root.xpath('//ns:identifier[@type="uri"]', namespaces=namespace)[0].text
         return ParsedModsData(members=member_meta, committees=committee_meta, witnesses=witnesses, uri=uri)
 
     def _parse_member_elements(
