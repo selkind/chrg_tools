@@ -133,7 +133,7 @@ class APIClient:
 
         member_meta = []
         for i in members:
-            name = i.xpath('//ns:name[@type="authority-lnf"]', namespaces=namespace)
+            name = i.xpath('./ns:name[@type="authority-lnf"]', namespaces=namespace)[0].text
             member_meta.append(
                 ParsedMember(
                     name=name,

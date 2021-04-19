@@ -290,7 +290,7 @@ def expected_parsed_members():
             state='PA'
         ),
         ParsedMember(
-            name='Weber, Randy., Sr.',
+            name='Weber, Randy K., Sr.',
             chamber='H',
             party='R',
             congress=113,
