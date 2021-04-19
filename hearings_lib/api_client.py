@@ -109,7 +109,7 @@ class APIClient:
     def _get_mod_fields(self, content: bytes) -> ParsedModsData:
         root = etree.XML(content)
         # I think lxml is failing to parse the namespace xmlns without a colon. Hence None is the key for the
-        # namespace. I should post an issue to the api
+        # namespace. I should post an issue to the govinfo api repo
         namespace = {'ns': root.nsmap[None]}
         members = root.xpath(
             '//ns:extension/ns:congMember',
