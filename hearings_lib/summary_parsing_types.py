@@ -5,7 +5,7 @@ import datetime
 class ParsedCommittee(NamedTuple):
     name: str
     chamber: str
-    congres: int
+    congress: int
     subcommittees: List[str]
 
 
