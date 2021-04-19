@@ -2,13 +2,7 @@ import os
 import pytest
 from lxml import etree
 from hearings_lib.api_client import APIClient
-from hearings_lib.summary_parsing_types import ParsedCommittee, ParsedMember, ParsedModsData
-from mod_fixtures import (
-    expected_parsed_committees,
-    expected_parsed_members,
-    expected_parsed_witnesses,
-    expected_parsed_mods
-)
+from tests.mod_fixtures import expected_parsed_committees
 
 
 class TestModsParser:
@@ -22,6 +16,6 @@ class TestModsParser:
             return etree.XML(f.read())
 
     def test_parse_committee_elements(self, mods_content, expected_parsed_committees):
-        committee_elements = mods_content.xpath('//ns:extension/ns:congComittee', namespaces=self.NAMESPACE)
-        actual = self.client._parse_committee_elements(committee_elements)
+        committee_elements = mods_content.xpath('//ns:extension/ns:congCommittee', namespaces=self.NAMESPACE)
+        actual = self.client._parse_committee_elements(committee_elements, namespace=self.NAMESPACE)
         assert actual == expected_parsed_committees

@@ -3,7 +3,7 @@ import datetime
 from typing import Optional, Dict, List
 import logging
 from lxml import etree
-from summary_parsing_types import ParsedSummary, ParsedModsData, ParsedMember, ParsedCommittee
+from hearings_lib.summary_parsing_types import ParsedSummary, ParsedModsData, ParsedMember, ParsedCommittee
 
 
 class APIClient:
@@ -148,8 +148,11 @@ class APIClient:
     def _parse_committee_elements(self, committees, namespace) -> List[ParsedCommittee]:
         committee_meta = []
         for i in committees:
-            committee_name = i.xpath('/ns:name[@type="authority-standard"]', namespaces=namespace)
-            sub_committee_names = i.xpath('/ns:subCommittee/ns:name[@type="parsed"]')
+            committee_name = i.xpath('//ns:name[@type="authority-standard"]', namespaces=namespace)[0].text
+            sub_committee_names = [
+                j.text for j in i.xpath('//ns:subCommittee/ns:name[@type="parsed"]', namespaces=namespace)
+            ]
+
             committee_meta.append(
                 ParsedCommittee(
                     name=committee_name,

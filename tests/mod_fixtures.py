@@ -1,8 +1,8 @@
 import pytest
-from summary_parsing_types import ParsedMember, ParsedCommittee, ParsedModsData
+from hearings_lib.summary_parsing_types import ParsedMember, ParsedCommittee, ParsedModsData
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def expected_parsed_committees():
     return [
         ParsedCommittee(
