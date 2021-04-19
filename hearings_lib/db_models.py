@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, DateTime, Text, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 Base = declarative_base()
 
@@ -15,7 +15,9 @@ class Hearing(Base):
     uri = Column(Text)
     url = Column(Text)
     sudoc = Column(Text)
-    number = Column(Text)
+    pages = Column(Integer)
+    date_issued = Column(Date)
+    last_modified = Column(DateTime)
     members = relationship('MemberAttendance', back_populates='hearing')
     witnesses = relationship('HearingWitness', back_populates='hearing')
 
@@ -30,6 +32,7 @@ class Committee(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text)
     chamber = Column(String(10))
+    congress = Column(Integer)
     code = Column(String(15), unique=True)
 
     subcommittees = relationship('SubCommittee', back_populates='committee')
@@ -72,7 +75,6 @@ class MemberAttendance(Base):
     party = Column(String(1))
     congress = Column(Integer)
     state = Column(String(30))
-
 
     hearing_id = Column(Integer, ForeignKey('hearing_summaries.id'))
     hearing = relationship('Hearing', back_populates='members')

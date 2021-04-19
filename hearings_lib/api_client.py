@@ -1,10 +1,9 @@
 import requests
 import datetime
-from typing import Optional, Dict, List, NamedTuple
+from typing import Optional, Dict, List
 import logging
 from lxml import etree
-import db_models
-from collections import namedtuple
+from summary_parsing_types import ParsedSummary, ParsedModsData, ParsedMember, ParsedCommittee
 
 
 class APIClient:
@@ -15,26 +14,31 @@ class APIClient:
     DEFAULT_PAGE_SIZE: int = 100
 
     def __init__(self, api_key: str):
-
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(logging.StreamHandler())
         self.logger.setLevel(logging.INFO)
         self.api_key: str = api_key
-    
-    def get_package_summaries(self, packages: List[Dict]) -> List[Dict]:
+
+    def get_package_summaries(self, packages: List[Dict]) -> List[ParsedSummary]:
         summaries = []
         for i in packages:
-            hearing = db_models.Hearing()
-            hearing.title = i['title']
-            hearing.package_id = i['packageId']
-            hearing.congress = int(i['congress'])
-
-            if i['packageLink'] is None:
-                self.logger.info(f'Package {i["packageId"]} had no link to summary, adding skeleton entry to database')
-                summaries.append(hearing)
+            title = i.get('title')
+            package_id = i.get('packageId')
+            congress = int(i.get('congress'))
+            summary_url = i.get('packageLink')
+            if summary_url is None:
+                self.logger.info(f'Package {package_id} had no link to summary, adding skeleton entry to database')
+                summaries.append(
+                    ParsedSummary(
+                        title=title,
+                        package_id=package_id,
+                        congress=congress,
+                        url=summary_url
+                    )
+                )
                 continue
 
-            r = self._get(i['packageLink'])
+            r = self._get(summary_url)
             try:
                 r.raise_for_status()
             except requests.exceptions.HTTPError as e:
@@ -42,18 +46,56 @@ class APIClient:
                 # potentially add this url to a retry list.
 
             sum_result = r.json()
+            session = int(summary_url.get('session'))
+            chamber = sum_result.get('chamber')
+            sudoc = sum_result.get('suDocClassNumber')
+            pages = sum_result.get('pages')
+            date_issued = datetime.date.fromisoformat(sum_result.get('dateIssued'))
+            last_modified = datetime.datetime.strptime(sum_result.get('lastModified'), '%Y-%m-%dT%H:%M:%SZ')
+            dates_held = [datetime.date.fromisoformat(j) for j in sum_result.get('heldDates')]
+
             try:
                 mods_link = sum_result['download']['modsLink']
             except KeyError:
                 self.logger.info(f'{package_id} has no mods Link, no witness or committee data collected')
+                summaries.append(
+                    ParsedSummary(
+                        package_id=package_id,
+                        title=title,
+                        congress=congress,
+                        session=session,
+                        chamber=chamber,
+                        url=summary_url,
+                        sudoc=sudoc,
+                        pages=pages,
+                        date_issued=date_issued,
+                        last_modified=last_modified,
+                        dates=dates_held
+                    )
+                )
+                continue
             else:
-                hearing.url = i['packageLink']
                 mods_page = self._make_mods_request(mods_link)
-                mods = self._get_mod_fields(mods_page) if mods_page else {}
+                mods = self._get_mod_fields(mods_page) if mods_page else None
 
-            summaries.append()
+            summaries.append(
+                ParsedSummary(
+                    package_id=package_id,
+                    title=title,
+                    congress=congress,
+                    session=session,
+                    chamber=chamber,
+                    url=summary_url,
+                    sudoc=sudoc,
+                    pages=pages,
+                    date_issued=date_issued,
+                    last_modified=last_modified,
+                    dates=dates_held,
+                    metadata=mods
+                )
+            )
         return summaries
-    
+
     def _make_mods_request(self, mods_link: str) -> bytes:
         mods_r = self._get(mods_link)
         try:
@@ -64,7 +106,7 @@ class APIClient:
         else:
             return mods_r.content
 
-    def _get_mod_fields(self, content: bytes) -> List[Dict]:
+    def _get_mod_fields(self, content: bytes) -> ParsedModsData:
         root = etree.XML(content)
         # I think lxml is failing to parse the namespace xmlns without a colon. Hence None is the key for the
         # namespace. I should post an issue to the api
@@ -80,34 +122,31 @@ class APIClient:
         )
         committee_meta = self._parse_committee_elements(committees, namespace)
         witnesses = root.xpath('//ns:extension/ns:witness', namespaces=namespace)
+        uri = root.xpath('//ns:identifier[@type="uri"]', namespaces=namespace)
+        return ParsedModsData(members=member_meta, committees=committee_meta, witnesses=witnesses, uri=uri)
 
     def _parse_member_elements(
         self,
         members: etree._Element,
         namespace: Dict[str, str]
-    ) -> List[db_models.MemberAttendance]:
+    ) -> List[ParsedMember]:
 
         member_meta = []
         for i in members:
             name = i.xpath('//ns:name[@type="authority-lnf"]', namespaces=namespace)
-            member = db_models.MemberAttendance(
-                name=name,
-                chamber=i.attrib.get('chamber'),
-                party=i.attrib.get('party'),
-                state=i.attrib.get('state'),
-                congress=int(i.attrib.get('congress'))
+            member_meta.append(
+                ParsedMember(
+                    name=name,
+                    chamber=i.attrib.get('chamber'),
+                    party=i.attrib.get('party'),
+                    state=i.attrib.get('state'),
+                    congress=int(i.attrib.get('congress'))
+                )
             )
-            member_meta.append(member)
         return member_meta
 
-    def _parse_committee_elements(
-        self,
-        committees,
-        namespace
-    ) -> List[NamedTuple[str, str, int, List[str]]]:
+    def _parse_committee_elements(self, committees, namespace) -> List[ParsedCommittee]:
         committee_meta = []
-        ParsedCommittee = namedtuple('ParsedCommitte', ['name', 'chamber', 'congress', 'subcommittees'])
-
         for i in committees:
             committee_name = i.xpath('/ns:name[@type="authority-standard"]', namespaces=namespace)
             sub_committee_names = i.xpath('/ns:subCommittee/ns:name[@type="parsed"]')
