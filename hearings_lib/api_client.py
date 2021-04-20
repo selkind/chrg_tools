@@ -3,7 +3,8 @@ import datetime
 from typing import Optional, Dict, List
 import logging
 from lxml import etree
-from hearings_lib.summary_parsing_types import ParsedSummary, ParsedModsData, ParsedMember, ParsedCommittee
+from hearings_lib.mods_page_parser import ModsPageParser
+from hearings_lib.summary_parsing_types import ParsedSummary, ParsedMember, ParsedCommittee, ParsedModsData
 
 
 class APIClient:
@@ -76,7 +77,7 @@ class APIClient:
                 continue
             else:
                 mods_page = self._make_mods_request(mods_link)
-                mods = self._get_mod_fields(mods_page) if mods_page else None
+                mods = ModsPageParser(mods_page).create_parsed_mods_page() if mods_page else None
 
             summaries.append(
                 ParsedSummary(
@@ -105,63 +106,6 @@ class APIClient:
             return None
         else:
             return mods_r.content
-
-    def _get_mod_fields(self, content: bytes) -> ParsedModsData:
-        root = etree.XML(content)
-        # I think lxml is failing to parse the namespace xmlns without a colon. Hence None is the key for the
-        # namespace. I should post an issue to the govinfo api repo
-        namespace = {'ns': root.nsmap[None]}
-        members = root.xpath(
-            '//ns:extension/ns:congMember',
-            namespaces=namespace
-        )
-        member_meta = self._parse_member_elements(members, namespace)
-        committees = root.xpath(
-            '//ns:extension/ns:congCommittee',
-            namespaces=namespace
-        )
-        committee_meta = self._parse_committee_elements(committees, namespace)
-        witnesses = [i.text for i in root.xpath('//ns:extension/ns:witness', namespaces=namespace)]
-        uri = root.xpath('//ns:identifier[@type="uri"]', namespaces=namespace)[0].text
-        return ParsedModsData(members=member_meta, committees=committee_meta, witnesses=witnesses, uri=uri)
-
-    def _parse_member_elements(
-        self,
-        members: etree._Element,
-        namespace: Dict[str, str]
-    ) -> List[ParsedMember]:
-
-        member_meta = []
-        for i in members:
-            name = i.xpath('./ns:name[@type="authority-lnf"]', namespaces=namespace)[0].text
-            member_meta.append(
-                ParsedMember(
-                    name=name,
-                    chamber=i.attrib.get('chamber'),
-                    party=i.attrib.get('party'),
-                    state=i.attrib.get('state'),
-                    congress=int(i.attrib.get('congress'))
-                )
-            )
-        return member_meta
-
-    def _parse_committee_elements(self, committees, namespace) -> List[ParsedCommittee]:
-        committee_meta = []
-        for i in committees:
-            committee_name = i.xpath('//ns:name[@type="authority-standard"]', namespaces=namespace)[0].text
-            sub_committee_names = [
-                j.text for j in i.xpath('//ns:subCommittee/ns:name[@type="parsed"]', namespaces=namespace)
-            ]
-
-            committee_meta.append(
-                ParsedCommittee(
-                    name=committee_name,
-                    chamber=i.attrib.get('chamber'),
-                    congress=int(i.attrib.get('congress')),
-                    subcommittees=sub_committee_names
-                )
-            )
-        return committee_meta
 
     def get_package_ids_by_congress(self, congress: int) -> Dict:
         params = {
