@@ -1,6 +1,7 @@
 from typing import Dict, List
 from lxml import etree
 from hearings_lib.summary_parsing_types import ParsedCommittee, ParsedMember, ParsedModsData
+import logging
 
 
 class ModsPageParser:
@@ -19,6 +20,10 @@ class ModsPageParser:
     root: etree._Element
 
     def __init__(self, content):
+        self.logger = logging.getLogger(__name__)
+        # self.logger.addHandler(logging.StreamHandler())
+        self.logger.addHandler(logging.FileHandler(f'{__name__}.log', 'w+'))
+        self.logger.setLevel(logging.INFO)
         self.root = etree.XML(content)
         self.namespace = {'ns': self.root.nsmap[None]}
 
@@ -33,8 +38,14 @@ class ModsPageParser:
     def _parse_members(self) -> List[ParsedMember]:
         result = []
         member_elements = self.root.xpath(self.MEMBER_XPATH, namespaces=self.namespace)
+        missed_member_count = 0
         for i in member_elements:
-            name = i.xpath(self.MEMBER_NAME_XPATH, namespaces=self.namespace)[0].text
+            parsed_name = i.xpath(self.MEMBER_NAME_XPATH, namespaces=self.namespace)
+            name = ''
+            if parsed_name:
+                name = parsed_name[0].text
+            else:
+                missed_member_count += 1
             result.append(
                 ParsedMember(
                     name=name,
@@ -44,13 +55,23 @@ class ModsPageParser:
                     congress=int(i.attrib.get('congress'))
                 )
             )
+        if missed_member_count:
+            self.logger.warn(f'Failed to parse {missed_member_count} members')
+
         return result
 
     def _parse_committees(self) -> List[ParsedCommittee]:
         result = []
         committee_elements = self.root.xpath(self.COMMITTEE_XPATH, namespaces=self.namespace)
+        missed_committee_count = 0
         for i in committee_elements:
-            name = i.xpath(self.COMMITTEE_NAME_XPATH, namespaces=self.namespace)[0].text
+            parsed_name = i.xpath(self.COMMITTEE_NAME_XPATH, namespaces=self.namespace)
+            name = ''
+            if parsed_name:
+                name = parsed_name[0].text
+            else:
+                missed_committee_count += 1
+
             subcommittees = [j.text for j in i.xpath(self.SUBCOMMITTEE_XPATH, namespaces=self.namespace)]
             result.append(
                 ParsedCommittee(
@@ -60,10 +81,17 @@ class ModsPageParser:
                     subcommittees=subcommittees
                 )
             )
+        if missed_committee_count:
+            self.logger.warn(f'Failed to parse {missed_committee_count} committees')
+
         return result
 
     def _parse_witnesses(self) -> List[str]:
         return [i.text for i in self.root.xpath(self.WITNESS_XPATH, namespaces=self.namespace)]
 
     def _parse_uri(self) -> str:
-        return self.root.xpath(self.URI_XPATH, namespaces=self.namespace)[0].text
+        uri_element = self.root.xpath(self.URI_XPATH, namespaces=self.namespace)
+        if uri_element:
+            return uri_element[0].text
+        self.logger.warn('uri not found')
+        return ''

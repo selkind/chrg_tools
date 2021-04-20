@@ -42,7 +42,7 @@ class SubCommittee(Base):
     __tablename__ = 'subcommittees'
     id = Column(Integer, primary_key=True)
     name = Column(Text)
-    committee_code = Column(String(15), ForeignKey('committees.id'))
+    committee_id = Column(Integer, ForeignKey('committees.id'))
 
     committee = relationship('Committee', back_populates='subcommittees')
     hearing_particpation = relationship('ParticipantSubCommittee', back_populates='subcommittee')
@@ -73,6 +73,7 @@ class MemberAttendance(Base):
     hearing = relationship('Hearing', back_populates='members')
     member_id = Column(Integer, ForeignKey('members.id'))
     member = relationship('CongressMember', back_populates='attendance')
+
 
 class CongressMember(Base):
     __tablename__ = 'members'

@@ -1,4 +1,4 @@
-from hearings_lib.summary_parsing_types import ParsedSummary, ParsedCommittee
+from hearings_lib.summary_parsing_types import ParsedSummary, ParsedCommittee, ParsedMember
 from typing import List, Tuple
 import sqlalchemy.engine.base.Engine
 from sqlalchemy import create_engine, select
@@ -19,7 +19,7 @@ class DB_Handler:
     engine: sqlalchemy.engine.base.Engine
 
     def __init__(self, db_uri: str):
-        self.engine = sqa.create_engine(db_uri, future=True)
+        self.engine = create_engine(db_uri, future=True)
 
     def sync_hearing_records(self, package_summaries: List[ParsedSummary]) -> None:
         with Session(self.engine) as session:
@@ -32,6 +32,7 @@ class DB_Handler:
                     processed_hearing = self._process_hearing(i, current_hearing, session)
                 else:
                     session.add(self._process_hearing(i, Hearing(package_id=i.package_id), session))
+            session.commit()
 
     def _process_hearing(self, parsed: ParsedSummary, hearing: Hearing, session: Session) -> Hearing:
         hearing.last_modified = parsed.last_modified
@@ -113,3 +114,4 @@ class DB_Handler:
         return witnesses
 
     def _process_unique_members(self, parsed_members: List[ParsedMember], session: Session) -> List[MemberAttendance]:
+        pass

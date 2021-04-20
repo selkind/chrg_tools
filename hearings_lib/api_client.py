@@ -2,9 +2,8 @@ import requests
 import datetime
 from typing import Optional, Dict, List
 import logging
-from lxml import etree
 from hearings_lib.mods_page_parser import ModsPageParser
-from hearings_lib.summary_parsing_types import ParsedSummary, ParsedMember, ParsedCommittee, ParsedModsData
+from hearings_lib.summary_parsing_types import ParsedSummary
 
 
 class APIClient:
@@ -16,7 +15,8 @@ class APIClient:
 
     def __init__(self, api_key: str):
         self.logger = logging.getLogger(__name__)
-        self.logger.addHandler(logging.StreamHandler())
+        # self.logger.addHandler(logging.StreamHandler())
+        self.logger.addHandler(logging.FileHandler(f'{__name__}.log', 'w+'))
         self.logger.setLevel(logging.INFO)
         self.api_key: str = api_key
 
@@ -25,6 +25,7 @@ class APIClient:
         for i in packages:
             title = i.get('title')
             package_id = i.get('packageId')
+            self.logger.info(f'Parsing package {package_id}, {title}')
             congress = int(i.get('congress'))
             summary_url = i.get('packageLink')
             if summary_url is None:
@@ -39,15 +40,23 @@ class APIClient:
                 )
                 continue
 
-            r = self._get(summary_url)
             try:
+                r = self._get(summary_url)
                 r.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                self.logger.info(f'{r.url} returned error: {e}')
+            except (
+                requests.exceptions.HTTPError,
+                requests.ConnectionError,
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.Timeout,
+                requests.exceptions.ConnectTimeout,
+                OSError
+            ) as e:
+                self.logger.info(f'{summary_url} returned error: {e}')
+                continue
                 # potentially add this url to a retry list.
 
             sum_result = r.json()
-            session = int(summary_url.get('session'))
+            session = int(sum_result.get('session'))
             chamber = sum_result.get('chamber')
             sudoc = sum_result.get('suDocClassNumber')
             pages = sum_result.get('pages')
@@ -98,11 +107,18 @@ class APIClient:
         return summaries
 
     def _make_mods_request(self, mods_link: str) -> bytes:
-        mods_r = self._get(mods_link)
         try:
+            mods_r = self._get(mods_link)
             mods_r.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            self.logger.info(f'{mods_r.url} returned error: {e}')
+        except (
+            requests.exceptions.HTTPError,
+            requests.ConnectionError,
+            requests.exceptions.ReadTimeout,
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectTimeout,
+            OSError
+        ) as e:
+            self.logger.info(f'{mods_link} returned error: {e}')
             return None
         else:
             return mods_r.content
@@ -116,11 +132,18 @@ class APIClient:
     def _get_packages(self, params: Dict[str, str]) -> List[Dict]:
         params['offset'] = str(0)
         params['pageSize'] = str(self.DEFAULT_PAGE_SIZE)
-        first_response = self._get(self.CHRG_ENDPOINT, params=params)
         try:
+            first_response = self._get(self.CHRG_ENDPOINT, params=params)
             first_response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            self.logger.info(f'{first_response.url} returned error: {e}')
+        except (
+            requests.exceptions.HTTPError,
+            requests.ConnectionError,
+            requests.exceptions.ReadTimeout,
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectTimeout,
+            OSError
+        ) as e:
+            self.logger.info(f'{self.CHRG_ENDPOINT} returned error: {e}')
             return []
 
         packages: List[Dict] = self._extract_packages_from_response(first_response)
@@ -129,11 +152,18 @@ class APIClient:
         iterations: int = total_count // self.DEFAULT_PAGE_SIZE + 1
         for i in range(1, iterations):
             params['offset']: str = str(i * self.DEFAULT_PAGE_SIZE)
-            r: requests.Response = self._get(self.CHRG_ENDPOINT, params=params)
             try:
+                r: requests.Response = self._get(self.CHRG_ENDPOINT, params=params)
                 r.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                self.logger.info(f'{first_response.url} returned error: {e}')
+            except (
+                requests.exceptions.HTTPError,
+                requests.ConnectionError,
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.Timeout,
+                requests.exceptions.ConnectTimeout,
+                OSError
+            ) as e:
+                self.logger.info(f'{self.CHRG_ENDPOINT} returned error: {e}')
                 continue
             packages = packages + self._extract_packages_from_response(r)
 
