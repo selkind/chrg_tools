@@ -36,5 +36,5 @@ class ParsedSummary(NamedTuple):
     pages: int
     date_issued: datetime.date
     last_modified: datetime.datetime
-    dates: List[datetime.datetime]
+    dates: List[datetime.date]
     metadata: ParsedModsData
