@@ -30,7 +30,6 @@ class ParsedSummary(NamedTuple):
     congress: int
     session: int
     chamber: str
-    uri: str
     url: str
     sudoc: str
     pages: int
