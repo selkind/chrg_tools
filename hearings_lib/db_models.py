@@ -89,7 +89,7 @@ class CongressMember(Base):
 class HearingWitness(Base):
     __tablename__ = 'hearing_witnesses'
     id = Column(Integer, primary_key=True)
-    name = Column(String(50))
+    name = Column(Text)
     hearing_id = Column(String(25), ForeignKey('hearing_summaries.package_id'))
     hearing = relationship('Hearing', back_populates='witnesses')
 

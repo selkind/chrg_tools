@@ -48,11 +48,11 @@ class DB_Handler:
             hearing.sudoc = parsed.sudoc
             hearing.pages = parsed.pages
             hearing.date_issued = parsed.date_issued
-            hearing.dates = [HeldDate(date=j) for j in parsed.dates]
+            hearing.dates_held = [HeldDate(date=j) for j in parsed.dates]
             committees, subcommittees = self._process_unique_committees(parsed.metadata.committees, session)
             hearing.committees = committees
             hearing.subcommittees = subcommittees
-            hearing.witnessess = self._process_unique_witnesses(parsed.metadata.witnesses, session)
+            hearing.witnesses = self._process_unique_witnesses(parsed.metadata.witnesses, session)
             hearing.members = self._process_unique_members(parsed.metadata.members, session)
         except AttributeError:
             pass
