@@ -16,7 +16,7 @@ class APIClient:
     DEFAULT_PAGE_SIZE: int = 100
 
     SKELETON_ATTRIBUTES = ['title', 'packageId', 'congress', 'packageLink']
-    SUM_RESULT_ATTRIBUTES = ['session', 'chamber', 'suDocClassNumber', 'pages', 'dateIssued', 'lastModified', 'heldDates']
+    SUM_RESULT_ATTRIBUTES = ['session', 'chamber', 'suDocClassNumber', 'pages', 'dateIssued', 'lastModified']
 
     def __init__(self, api_key: str):
         self.logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ class APIClient:
             pages = int(stripped_sum_result['pages']) if stripped_sum_result['pages'] else None
             date_issued = date_parse(stripped_sum_result['dateIssued']).date()
             last_modified = date_parse(stripped_sum_result['lastModified'])
-            dates_held = [date_parse(j).date() for j in stripped_sum_result['heldDates']]
+            dates_held = [date_parse(j).date() for j in sum_result.get('heldDates', [])]
 
             try:
                 mods_link = sum_result['download']['modsLink']
