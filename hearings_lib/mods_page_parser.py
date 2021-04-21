@@ -43,16 +43,16 @@ class ModsPageParser:
             parsed_name = i.xpath(self.MEMBER_NAME_XPATH, namespaces=self.namespace)
             name = ''
             if parsed_name:
-                name = parsed_name[0].text
+                name = parsed_name[0].text.strip()
             else:
                 missed_member_count += 1
             result.append(
                 ParsedMember(
                     name=name,
-                    chamber=i.attrib.get('chamber'),
-                    party=i.attrib.get('party'),
-                    state=i.attrib.get('state'),
-                    congress=int(i.attrib.get('congress'))
+                    chamber=i.attrib.get('chamber').strip(),
+                    party=i.attrib.get('party').strip(),
+                    state=i.attrib.get('state').strip(),
+                    congress=int(i.attrib.get('congress').strip())
                 )
             )
         if missed_member_count:
@@ -68,16 +68,16 @@ class ModsPageParser:
             parsed_name = i.xpath(self.COMMITTEE_NAME_XPATH, namespaces=self.namespace)
             name = ''
             if parsed_name:
-                name = parsed_name[0].text
+                name = parsed_name[0].text.strip()
             else:
                 missed_committee_count += 1
 
-            subcommittees = [j.text for j in i.xpath(self.SUBCOMMITTEE_XPATH, namespaces=self.namespace)]
+            subcommittees = [j.text.strip() for j in i.xpath(self.SUBCOMMITTEE_XPATH, namespaces=self.namespace)]
             result.append(
                 ParsedCommittee(
                     name=name,
-                    chamber=i.attrib.get('chamber'),
-                    congress=int(i.attrib.get('congress')),
+                    chamber=i.attrib.get('chamber').strip(),
+                    congress=int(i.attrib.get('congress').strip()),
                     subcommittees=subcommittees
                 )
             )
@@ -87,11 +87,11 @@ class ModsPageParser:
         return result
 
     def _parse_witnesses(self) -> List[str]:
-        return [i.text for i in self.root.xpath(self.WITNESS_XPATH, namespaces=self.namespace)]
+        return [i.text.strip() for i in self.root.xpath(self.WITNESS_XPATH, namespaces=self.namespace)]
 
     def _parse_uri(self) -> str:
         uri_element = self.root.xpath(self.URI_XPATH, namespaces=self.namespace)
         if uri_element:
-            return uri_element[0].text
+            return uri_element[0].text.strip()
         self.logger.warn('uri not found')
         return ''

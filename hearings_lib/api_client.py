@@ -23,11 +23,11 @@ class APIClient:
     def get_package_summaries(self, packages: List[Dict]) -> List[ParsedSummary]:
         summaries = []
         for i in packages:
-            title = i.get('title')
-            package_id = i.get('packageId')
+            title = i.get('title').strip()
+            package_id = i.get('packageId').strip()
             self.logger.info(f'Parsing package {package_id}, {title}')
-            congress = int(i.get('congress'))
-            summary_url = i.get('packageLink')
+            congress = int(i.get('congress').strip())
+            summary_url = i.get('packageLink').strip()
             if summary_url is None:
                 self.logger.info(f'Package {package_id} had no link to summary, adding skeleton entry to database')
                 summaries.append(
@@ -56,10 +56,10 @@ class APIClient:
                 # potentially add this url to a retry list.
 
             sum_result = r.json()
-            session = int(sum_result.get('session'))
-            chamber = sum_result.get('chamber')
-            sudoc = sum_result.get('suDocClassNumber')
-            pages = sum_result.get('pages')
+            session = int(sum_result.get('session').strip())
+            chamber = sum_result.get('chamber').strip()
+            sudoc = sum_result.get('suDocClassNumber').strip()
+            pages = int(sum_result.get('pages').strip())
             date_issued = datetime.date.fromisoformat(sum_result.get('dateIssued'))
             last_modified = datetime.datetime.strptime(sum_result.get('lastModified'), '%Y-%m-%dT%H:%M:%SZ')
             dates_held = [datetime.date.fromisoformat(j) for j in sum_result.get('heldDates')]
