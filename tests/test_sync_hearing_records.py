@@ -14,8 +14,7 @@ class TestSyncHearingRecords:
     def package_summaries(self):
         with open(self.TEST_DATA_PATH, 'rb') as f:
             data = pickle.load(f)
-        return data 
-
+        return data
 
     @pytest.fixture
     def db(self):
@@ -28,4 +27,3 @@ class TestSyncHearingRecords:
         handler = DB_Handler(db)
         handler.sync_hearing_records(package_summaries)
         assert True
-    

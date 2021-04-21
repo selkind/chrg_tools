@@ -1,6 +1,6 @@
 from typing import List, Tuple
 from sqlalchemy.engine.base import Engine
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from hearings_lib.db_models import (
     Hearing,

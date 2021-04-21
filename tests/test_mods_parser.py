@@ -23,6 +23,11 @@ class TestModsParser:
         actual = parser._parse_members()
         assert actual == expected_parsed_members
 
+    def test_parse_witnesses(self, mods_content, expected_parsed_witnesses):
+        parser = ModsPageParser(mods_content)
+        actual = parser._parse_witnesses()
+        assert actual == expected_parsed_witnesses
+
     def test_get_mod_fields(self, mods_content, expected_parsed_mods):
         parser = ModsPageParser(mods_content)
         actual = parser.create_parsed_mods_page()
