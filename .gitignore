@@ -1,9 +1,15 @@
-*.pickle
-*.log
+# vscode/python specific
 .vscode/**
 *.pyc
-**.env
-*.zip
-current/**
 **/.ipynb_checkpoints/**
 **/__pycache__/**
+
+# data files used for testing/logging
+*.pickle
+*.log
+*.zip
+current/**
+tests/*.sql
+
+# env file
+**.env
