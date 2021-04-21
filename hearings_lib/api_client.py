@@ -1,5 +1,6 @@
 import requests
 import datetime
+from dateutil.parser import parse as date_parse
 import logging
 from typing import Optional, Dict, List
 from tqdm.auto import tqdm
@@ -31,7 +32,7 @@ class APIClient:
             title = stripped_skeleton['title']
             package_id = stripped_skeleton['packageId']
             self.logger.info(f'Parsing package {package_id}, {title}')
-            congress = int(stripped_skeleton['congress'])
+            congress = int(stripped_skeleton['congress']) if stripped_skeleton['congress'] else None
             summary_url = stripped_skeleton['packageLink']
             if summary_url is None:
                 self.logger.info(f'Package {package_id} had no link to summary, adding skeleton entry to database')
@@ -62,13 +63,13 @@ class APIClient:
 
             sum_result = r.json()
             stripped_sum_result = {j: i.get(j).strip() if i.get(j) else None for j in self.SUM_RESULT_ATTRIBUTES}
-            session = int(stripped_sum_result['session'])
+            session = int(stripped_sum_result['session']) if stripped_sum_result['session'] else None
             chamber = stripped_sum_result['chamber']
             sudoc = stripped_sum_result['suDocClassNumber']
-            pages = int(stripped_sum_result['pages'])
-            date_issued = datetime.date.fromisoformat(stripped_sum_result['dateIssued'])
-            last_modified = datetime.datetime.strptime(stripped_sum_result['lastModified'], '%Y-%m-%dT%H:%M:%SZ')
-            dates_held = [datetime.date.fromisoformat(j) for j in stripped_sum_result['heldDates']]
+            pages = int(stripped_sum_result['pages']) if stripped_sum_result['pages'] else None
+            date_issued = date_parse(stripped_sum_result['dateIssued']).date()
+            last_modified = date_parse(stripped_sum_result['lastModified'])
+            dates_held = [date_parse(j).date() for j in stripped_sum_result['heldDates']]
 
             try:
                 mods_link = sum_result['download']['modsLink']

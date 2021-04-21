@@ -29,7 +29,6 @@ class ModsPageParser:
         self.logger.addHandler(logging.FileHandler(f'{__name__}.log', 'w+'))
         self.logger.setLevel(logging.INFO)
         self.root = etree.XML(content)
-        print(self.root.nsmap)
         self.namespace = {'ns': self.root.nsmap[None]}
 
     def create_parsed_mods_page(self) -> ParsedModsData:
@@ -62,7 +61,7 @@ class ModsPageParser:
                     chamber=stripped_attributes['chamber'],
                     party=stripped_attributes['party'],
                     state=stripped_attributes['state'],
-                    congress=int(stripped_attributes['congress'])
+                    congress=int(stripped_attributes['congress']) if stripped_attributes['congress'] else None
                 )
             )
         if missed_member_count:
@@ -89,7 +88,7 @@ class ModsPageParser:
                 ParsedCommittee(
                     name=name,
                     chamber=stripped_attributes['chamber'],
-                    congress=int(stripped_attributes['congress']),
+                    congress=int(stripped_attributes['congress']) if stripped_attributes['congress'] else None,
                     subcommittees=subcommittees
                 )
             )
