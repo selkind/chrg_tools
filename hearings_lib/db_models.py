@@ -7,7 +7,7 @@ class Hearing(Base):
     __tablename__ = 'hearing_summaries'
 
     package_id = Column(String(25), primary_key=True)
-    title = Column(String(300))
+    title = Column(Text)
     congress = Column(Integer)
     session = Column(Integer)
     chamber = Column(String(10))
@@ -45,7 +45,7 @@ class SubCommittee(Base):
     committee_id = Column(Integer, ForeignKey('committees.id'))
 
     committee = relationship('Committee', back_populates='subcommittees')
-    hearing_particpation = relationship('ParticipantSubCommittee', back_populates='subcommittee')
+    hearing_participation = relationship('ParticipantSubCommittee', back_populates='subcommittee')
 
 
 class ParticipantCommittee(Base):

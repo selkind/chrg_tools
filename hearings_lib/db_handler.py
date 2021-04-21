@@ -1,25 +1,26 @@
-from hearings_lib.summary_parsing_types import ParsedSummary, ParsedCommittee, ParsedMember
 from typing import List, Tuple
-import sqlalchemy.engine.base.Engine
+from sqlalchemy.engine.base import Engine
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
-from db_models import (
+from hearings_lib.db_models import (
     Hearing,
     Committee,
     SubCommittee,
     ParticipantCommittee,
     ParticipantSubCommittee,
     MemberAttendance,
+    CongressMember,
     HearingWitness,
     HeldDate
 )
+from hearings_lib.summary_parsing_types import ParsedSummary, ParsedCommittee, ParsedMember
 
 
 class DB_Handler:
-    engine: sqlalchemy.engine.base.Engine
+    engine: Engine
 
-    def __init__(self, db_uri: str):
-        self.engine = create_engine(db_uri, future=True)
+    def __init__(self, engine):
+        self.engine = engine
 
     def sync_hearing_records(self, package_summaries: List[ParsedSummary]) -> None:
         with Session(self.engine) as session:
@@ -31,26 +32,31 @@ class DB_Handler:
 
                     processed_hearing = self._process_hearing(i, current_hearing, session)
                 else:
-                    session.add(self._process_hearing(i, Hearing(package_id=i.package_id), session))
+                    processed_hearing = self._process_hearing(i, Hearing(package_id=i.package_id), session)
+                    session.add(processed_hearing)
             session.commit()
 
     def _process_hearing(self, parsed: ParsedSummary, hearing: Hearing, session: Session) -> Hearing:
-        hearing.last_modified = parsed.last_modified
         hearing.title = parsed.title
         hearing.congress = parsed.congress
-        hearing.session = parsed.session
-        hearing.chamber = parsed.chamber
         hearing.url = parsed.url
-        hearing.uri = parsed.metadata.uri
-        hearing.sudoc = parsed.sudoc
-        hearing.pages = parsed.pages
-        hearing.date_issued = parsed.date_issued
-        hearing.dates = [HeldDate(date=j) for j in parsed.dates]
-        committees, subcommittees = self._process_unique_committees(parsed.metadata.committees, session)
-        hearing.committees = committees
-        hearing.subcommittees = subcommittees
-        hearing.witnessess = self._process_unique_witnesses(parsed.metadata.witnesses, session)
-        hearing.members = self._process_unique_members(parsed.metadata.members, session)
+        try:
+            hearing.last_modified = parsed.last_modified
+            hearing.session = parsed.session
+            hearing.chamber = parsed.chamber
+            hearing.uri = parsed.metadata.uri
+            hearing.sudoc = parsed.sudoc
+            hearing.pages = parsed.pages
+            hearing.date_issued = parsed.date_issued
+            hearing.dates = [HeldDate(date=j) for j in parsed.dates]
+            committees, subcommittees = self._process_unique_committees(parsed.metadata.committees, session)
+            hearing.committees = committees
+            hearing.subcommittees = subcommittees
+            hearing.witnessess = self._process_unique_witnesses(parsed.metadata.witnesses, session)
+            hearing.members = self._process_unique_members(parsed.metadata.members, session)
+        except AttributeError:
+            pass
+
         return hearing
 
     def _process_unique_committees(
@@ -96,7 +102,7 @@ class DB_Handler:
             new_committee = Committee(name=i.name, chamber=i.chamber, congress=i.congress)
             participant_subcommittees = participant_subcommittees + [
                 ParticipantSubCommittee(
-                    subcommittee=SubCommittee(j, committee=new_committee)
+                    subcommittee=SubCommittee(name=j, committee=new_committee)
                 ) for j in i.subcommittees
             ]
             participant_committees.append(ParticipantCommittee(committee=new_committee))
@@ -114,4 +120,27 @@ class DB_Handler:
         return witnesses
 
     def _process_unique_members(self, parsed_members: List[ParsedMember], session: Session) -> List[MemberAttendance]:
-        pass
+        attending_members = []
+        for i in parsed_members:
+            existing_member = session.execute(
+                select(CongressMember).filter_by(
+                    name=i.name,
+                    chamber=i.chamber,
+                    party=i.party,
+                    congress=i.congress,
+                    state=i.state
+                )
+            ).scalar()
+
+            if existing_member:
+                attending_members.append(MemberAttendance(member=existing_member))
+                continue
+            new_member = CongressMember(
+                name=i.name,
+                chamber=i.chamber,
+                party=i.party,
+                congress=i.congress,
+                state=i.state
+            )
+            attending_members.append(MemberAttendance(member=new_member))
+        return attending_members
