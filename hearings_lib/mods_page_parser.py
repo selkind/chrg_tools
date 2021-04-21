@@ -8,9 +8,13 @@ class ModsPageParser:
     MEMBER_XPATH = '//ns:extension/ns:congMember'
     MEMBER_NAME_XPATH = './ns:name[@type="authority-lnf"]'
 
+    MEMBER_ATTRIBUTES = ['chamber', 'congress', 'party', 'state']
+
     COMMITTEE_XPATH = '//ns:extension/ns:congCommittee'
     COMMITTEE_NAME_XPATH = './ns:name[@type="authority-standard"]'
     SUBCOMMITTEE_XPATH = './ns:subCommittee/ns:name[@type="parsed"]'
+
+    COMMITTEE_ATTRIBUTES = ['chamber', 'congress']
 
     WITNESS_XPATH = '//ns:extension/ns:witness'
 
@@ -25,6 +29,7 @@ class ModsPageParser:
         self.logger.addHandler(logging.FileHandler(f'{__name__}.log', 'w+'))
         self.logger.setLevel(logging.INFO)
         self.root = etree.XML(content)
+        print(self.root.nsmap)
         self.namespace = {'ns': self.root.nsmap[None]}
 
     def create_parsed_mods_page(self) -> ParsedModsData:
@@ -46,17 +51,22 @@ class ModsPageParser:
                 name = parsed_name[0].text.strip()
             else:
                 missed_member_count += 1
+
+            # If the xml contains congress members that were improperly parsed, the congmember element may not have all expected attributes
+            # this code helps avoid attribute errors
+            stripped_attributes = {j: i.attrib.get(j).strip() if i.attrib.get(j) else None for j in self.MEMBER_ATTRIBUTES}
+
             result.append(
                 ParsedMember(
                     name=name,
-                    chamber=i.attrib.get('chamber').strip(),
-                    party=i.attrib.get('party').strip(),
-                    state=i.attrib.get('state').strip(),
-                    congress=int(i.attrib.get('congress').strip())
+                    chamber=stripped_attributes['chamber'],
+                    party=stripped_attributes['party'],
+                    state=stripped_attributes['state'],
+                    congress=int(stripped_attributes['congress'])
                 )
             )
         if missed_member_count:
-            self.logger.warn(f'Failed to parse {missed_member_count} members')
+            self.logger.warning(f'Failed to parse {missed_member_count} members')
 
         return result
 
@@ -72,17 +82,19 @@ class ModsPageParser:
             else:
                 missed_committee_count += 1
 
-            subcommittees = [j.text.strip() for j in i.xpath(self.SUBCOMMITTEE_XPATH, namespaces=self.namespace)]
+            subcommittees = [j.text.strip() if j.text else None for j in i.xpath(self.SUBCOMMITTEE_XPATH, namespaces=self.namespace)]
+
+            stripped_attributes = {j: i.attrib.get(j).strip() if i.attrib.get(j) else None for j in self.COMMITTEE_ATTRIBUTES}
             result.append(
                 ParsedCommittee(
                     name=name,
-                    chamber=i.attrib.get('chamber').strip(),
-                    congress=int(i.attrib.get('congress').strip()),
+                    chamber=stripped_attributes['chamber'],
+                    congress=int(stripped_attributes['congress']),
                     subcommittees=subcommittees
                 )
             )
         if missed_committee_count:
-            self.logger.warn(f'Failed to parse {missed_committee_count} committees')
+            self.logger.warning(f'Failed to parse {missed_committee_count} committees')
 
         return result
 
@@ -93,5 +105,5 @@ class ModsPageParser:
         uri_element = self.root.xpath(self.URI_XPATH, namespaces=self.namespace)
         if uri_element:
             return uri_element[0].text.strip()
-        self.logger.warn('uri not found')
+        self.logger.warning('uri not found')
         return ''

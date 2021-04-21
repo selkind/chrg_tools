@@ -1,7 +1,8 @@
 import requests
 import datetime
-from typing import Optional, Dict, List
 import logging
+from typing import Optional, Dict, List
+from tqdm.auto import tqdm
 from hearings_lib.mods_page_parser import ModsPageParser
 from hearings_lib.summary_parsing_types import ParsedSummary
 
@@ -13,6 +14,9 @@ class APIClient:
     CHRG_ENDPOINT: str = f'{COLLECTION_LIST_ENDPOINT}/CHRG/{DEFAULT_LAST_MODIFIED_START_DATE}'
     DEFAULT_PAGE_SIZE: int = 100
 
+    SKELETON_ATTRIBUTES = ['title', 'packageId', 'congress', 'packageLink']
+    SUM_RESULT_ATTRIBUTES = ['session', 'chamber', 'suDocClassNumber', 'pages', 'dateIssued', 'lastModified', 'heldDates']
+
     def __init__(self, api_key: str):
         self.logger = logging.getLogger(__name__)
         # self.logger.addHandler(logging.StreamHandler())
@@ -22,12 +26,13 @@ class APIClient:
 
     def get_package_summaries(self, packages: List[Dict]) -> List[ParsedSummary]:
         summaries = []
-        for i in packages:
-            title = i.get('title').strip()
-            package_id = i.get('packageId').strip()
+        for i in tqdm(packages, "Building package summaries"):
+            stripped_skeleton = {j: i.get(j).strip() if i.get(j) else None for j in self.SKELETON_ATTRIBUTES}
+            title = stripped_skeleton['title']
+            package_id = stripped_skeleton['packageId']
             self.logger.info(f'Parsing package {package_id}, {title}')
-            congress = int(i.get('congress').strip())
-            summary_url = i.get('packageLink').strip()
+            congress = int(stripped_skeleton['congress'])
+            summary_url = stripped_skeleton['packageLink']
             if summary_url is None:
                 self.logger.info(f'Package {package_id} had no link to summary, adding skeleton entry to database')
                 summaries.append(
@@ -56,13 +61,14 @@ class APIClient:
                 # potentially add this url to a retry list.
 
             sum_result = r.json()
-            session = int(sum_result.get('session').strip())
-            chamber = sum_result.get('chamber').strip()
-            sudoc = sum_result.get('suDocClassNumber').strip()
-            pages = int(sum_result.get('pages').strip())
-            date_issued = datetime.date.fromisoformat(sum_result.get('dateIssued'))
-            last_modified = datetime.datetime.strptime(sum_result.get('lastModified'), '%Y-%m-%dT%H:%M:%SZ')
-            dates_held = [datetime.date.fromisoformat(j) for j in sum_result.get('heldDates')]
+            stripped_sum_result = {j: i.get(j).strip() if i.get(j) else None for j in self.SUM_RESULT_ATTRIBUTES}
+            session = int(stripped_sum_result['session'])
+            chamber = stripped_sum_result['chamber']
+            sudoc = stripped_sum_result['suDocClassNumber']
+            pages = int(stripped_sum_result['pages'])
+            date_issued = datetime.date.fromisoformat(stripped_sum_result['dateIssued'])
+            last_modified = datetime.datetime.strptime(stripped_sum_result['lastModified'], '%Y-%m-%dT%H:%M:%SZ')
+            dates_held = [datetime.date.fromisoformat(j) for j in stripped_sum_result['heldDates']]
 
             try:
                 mods_link = sum_result['download']['modsLink']
@@ -150,7 +156,7 @@ class APIClient:
         # Determine how many requests to make
         total_count: int = int(first_response.json()['count'])
         iterations: int = total_count // self.DEFAULT_PAGE_SIZE + 1
-        for i in range(1, iterations):
+        for i in tqdm(range(1, iterations), 'Requesting packages'):
             params['offset']: str = str(i * self.DEFAULT_PAGE_SIZE)
             try:
                 r: requests.Response = self._get(self.CHRG_ENDPOINT, params=params)

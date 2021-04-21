@@ -2,7 +2,115 @@ import pytest
 from hearings_lib.summary_parsing_types import ParsedMember, ParsedCommittee, ParsedModsData
 
 
-@pytest.fixture()
+@pytest.fixture
+def expected_alt_committees():
+    return [
+        ParsedCommittee(
+            name='Committee on Finance',
+            chamber='S',
+            congress=113,
+            subcommittees=[]
+        )
+    ]
+
+
+@pytest.fixture
+def expected_alt_witnesses():
+    return [
+        'Cohen, Gary, Deputy Administrator and Director, Center for Consumer Information and Insurance Oversight (CCIIO), Centers for Medicare and Medicaid Services, Department of Health and Human Services, Washington, DC',
+        'Hughes, Don, Advisor to the Office of the Governor, State of Arizona, Phoenix, AZ',
+        'Ferguson, Christine, Director of the Rhode Island Health Benefit Exchange, State of Rhode Island, Providence, RI',
+        'Tweardy Riveros, Bettina, Advisor to the Governor and Chair of the Delaware Health Care Commission, State of Delaware, Wilmington, DE',
+    ]
+
+
+@pytest.fixture
+def expected_first_ten_alt_members():
+    return [
+        ParsedMember(
+            name='Schumer, Charles E.',
+            chamber='S',
+            party='D',
+            congress=113,
+            state='NY'
+        ),
+        ParsedMember(
+            name='Wyden, Ron',
+            chamber='S',
+            party='D',
+            congress=113,
+            state='OR'
+        ),
+        ParsedMember(
+            name='Brown, Sherrod',
+            chamber='S',
+            party='D',
+            congress=113,
+            state='OH'
+        ),
+        ParsedMember(
+            name='Stabenow, Debbie',
+            chamber='S',
+            party='D',
+            congress=113,
+            state='MI'
+        ),
+        ParsedMember(
+            name='Thune, John',
+            chamber='S',
+            party='R',
+            congress=113,
+            state='SD'
+        ),
+        ParsedMember(
+            name='Burr, Richard',
+            chamber='S',
+            party='R',
+            congress=113,
+            state='NC'
+        ),
+        ParsedMember(
+            name='Enzi, Michael B.',
+            chamber='S',
+            party='R',
+            congress=113,
+            state='WY'
+        ),
+        ParsedMember(
+            name='Toomey, Pat',
+            chamber='S',
+            party='R',
+            congress=113,
+            state='PA'
+        ),
+        ParsedMember(
+            name='Isakson, Johnny',
+            chamber='S',
+            party='R',
+            congress=113,
+            state='GA'
+        ),
+        ParsedMember(
+            name='Cornyn, John',
+            chamber='S',
+            party='R',
+            congress=113,
+            state='TX'
+        )
+    ]
+
+
+@pytest.fixture
+def expected_alt_parsed_mods(expected_first_ten_alt_members, expected_alt_witnesses, expected_alt_committees):
+    return ParsedModsData(
+        members=expected_first_ten_alt_members,
+        witnesses=expected_alt_witnesses,
+        committees=expected_alt_committees,
+        uri='https://www.govinfo.gov/app/details/CHRG-113shrg87945'
+    )
+
+
+@pytest.fixture
 def expected_parsed_committees():
     return [
         ParsedCommittee(

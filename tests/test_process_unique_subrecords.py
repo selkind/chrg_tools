@@ -32,5 +32,4 @@ class TestProcessUniqueSubrecords:
                 if i.metadata:
                     witnesses = i.metadata.witnesses
                     orm_witnesses = handler._process_unique_witnesses(witnesses, session)
-                    print(len(witnesses))
-                    assert len(witnesses) == len(orm_witnesses) + 1
+                    assert len(witnesses) == len(orm_witnesses)

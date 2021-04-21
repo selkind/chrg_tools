@@ -5,6 +5,7 @@ from sqlalchemy_utils import database_exists, create_database
 from hearings_lib.hearings.load_project_env import ProjectEnv
 from hearings_lib.db_models import Base
 from hearings_lib.db_handler import DB_Handler
+from hearings_lib.api_client import APIClient
 
 
 def main():
@@ -18,12 +19,15 @@ def main():
         create_database(connection_uri)
     Base.metadata.create_all(engine)
 
-    pickle_data_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'tests', 'summary_package_sample.pickle')
-    with open(pickle_data_path, 'rb') as f:
-        test_data = pickle.load(f)
-
     handler = DB_Handler(engine)
-    handler.sync_hearing_records(test_data)
+
+    client = APIClient(api_key=os.getenv('GPO_API_KEY'))
+    package_ids = client.get_package_ids_by_congress(113)
+    package_summaries = client.get_package_summaries(packages=package_ids)
+    with open('tests/summary_package_sample.pickle', 'wb+') as f:
+        pickle.dump(package_summaries, f)
+
+    handler.sync_hearing_records(package_summaries)
 
 
 if __name__ == '__main__':

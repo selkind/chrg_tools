@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from tqdm.auto import tqdm
 from sqlalchemy.engine.base import Engine
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -24,7 +25,7 @@ class DB_Handler:
 
     def sync_hearing_records(self, package_summaries: List[ParsedSummary]) -> None:
         with Session(self.engine) as session:
-            for i in package_summaries:
+            for i in tqdm(package_summaries, 'Adding summaries and metadata to database'):
                 current_hearing = session.execute(select(Hearing).filter_by(package_id=i.package_id)).scalar()
                 if current_hearing:
                     if current_hearing.last_modified == i.last_modified:
