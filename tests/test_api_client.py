@@ -1,5 +1,8 @@
 import os
 import re
+import json
+import datetime
+import dateutil.tz
 import pytest
 import responses
 from hearings_lib.hearings.load_project_env import ProjectEnv
@@ -8,6 +11,13 @@ from hearings_lib.api_client import APIClient
 
 class TestAPIClient:
     TEST_API_KEY = "1234abc"
+    EXAMPLE_SUMMARY_JSON_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'example_summary_response.json')
+
+    @pytest.fixture
+    def sample_summary_response(self):
+        with open(self.EXAMPLE_SUMMARY_JSON_PATH, 'r') as f:
+            return json.load(f)
+        
 
     @pytest.fixture
     def mocked_responses(self):
@@ -23,6 +33,19 @@ class TestAPIClient:
         return re.compile(
             f'{api_client.CHRG_ENDPOINT}\\?congress=[0-9]+&offset=([0]|[1-9][0-9]?00)&pageSize=100&api_key={self.TEST_API_KEY}'
         )
+
+    def test_get_summary_attributes(self, sample_summary_response, api_client):
+        actual = api_client._parse_summary_attributes(sample_summary_response)
+        expected = {
+            'chamber': 'SENATE',
+            'suDocClassNumber': 'Y 4.IN 2/11',
+            'dateIssued': datetime.date(2015, 7, 29),
+            'lastModified': datetime.datetime(2021, 2, 22, 18, 0, 44, tzinfo=dateutil.tz.tzutc()),
+            'session': 1,
+            'pages': 75,
+            'heldDates': [datetime.date(2015, 7, 29)]
+        }
+        assert actual == expected
 
     def test_get_adds_api_key_param(self, mocked_responses, api_client):
         mocked_responses.add(

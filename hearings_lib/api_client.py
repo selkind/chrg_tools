@@ -15,8 +15,8 @@ class APIClient:
     CHRG_ENDPOINT: str = f'{COLLECTION_LIST_ENDPOINT}/CHRG/{DEFAULT_LAST_MODIFIED_START_DATE}'
     DEFAULT_PAGE_SIZE: int = 100
 
-    SKELETON_ATTRIBUTES = ['title', 'packageId', 'congress', 'packageLink']
-    SUM_RESULT_ATTRIBUTES = ['session', 'chamber', 'suDocClassNumber', 'pages', 'dateIssued', 'lastModified']
+    SKELETON_ATTRIBUTES = ['title', 'packageId', 'packageLink']
+    SUM_RESULT_ATTRIBUTES = ['chamber', 'suDocClassNumber', 'dateIssued', 'lastModified']
 
     def __init__(self, api_key: str):
         self.logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class APIClient:
             title = stripped_skeleton['title']
             package_id = stripped_skeleton['packageId']
             self.logger.info(f'Parsing package {package_id}, {title}')
-            congress = int(stripped_skeleton['congress']) if stripped_skeleton['congress'] else None
+            congress = int(i.get('congress', 0))
             summary_url = stripped_skeleton['packageLink']
             if summary_url is None:
                 self.logger.info(f'Package {package_id} had no link to summary, adding skeleton entry to database')
@@ -62,14 +62,8 @@ class APIClient:
                 # potentially add this url to a retry list.
 
             sum_result = r.json()
-            stripped_sum_result = {j: i.get(j).strip() if i.get(j) else None for j in self.SUM_RESULT_ATTRIBUTES}
-            session = int(stripped_sum_result['session']) if stripped_sum_result['session'] else None
-            chamber = stripped_sum_result['chamber']
-            sudoc = stripped_sum_result['suDocClassNumber']
-            pages = int(stripped_sum_result['pages']) if stripped_sum_result['pages'] else None
-            date_issued = date_parse(stripped_sum_result['dateIssued']).date()
-            last_modified = date_parse(stripped_sum_result['lastModified'])
-            dates_held = [date_parse(j).date() for j in sum_result.get('heldDates', [])]
+            print(sum_result)
+            parsed_sum = self._parse_summary_attributes(sum_result)
 
             try:
                 mods_link = sum_result['download']['modsLink']
@@ -80,14 +74,14 @@ class APIClient:
                         package_id=package_id,
                         title=title,
                         congress=congress,
-                        session=session,
-                        chamber=chamber,
+                        session=parsed_sum['session'],
+                        chamber=parsed_sum['chamber'],
                         url=summary_url,
-                        sudoc=sudoc,
-                        pages=pages,
-                        date_issued=date_issued,
-                        last_modified=last_modified,
-                        dates=dates_held
+                        sudoc=parsed_sum['suDocClassNumber'],
+                        pages=parsed_sum['pages'],
+                        date_issued=parsed_sum['dateIssued'],
+                        last_modified=parsed_sum['lastModified'],
+                        dates=parsed_sum['heldDates']
                     )
                 )
                 continue
@@ -100,18 +94,30 @@ class APIClient:
                     package_id=package_id,
                     title=title,
                     congress=congress,
-                    session=session,
-                    chamber=chamber,
+                    session=parsed_sum['session'],
+                    chamber=parsed_sum['chamber'],
                     url=summary_url,
-                    sudoc=sudoc,
-                    pages=pages,
-                    date_issued=date_issued,
-                    last_modified=last_modified,
-                    dates=dates_held,
+                    sudoc=parsed_sum['suDocClassNumber'],
+                    pages=parsed_sum['pages'],
+                    date_issued=parsed_sum['dateIssued'],
+                    last_modified=parsed_sum['lastModified'],
+                    dates=parsed_sum['heldDates'],
                     metadata=mods
                 )
             )
         return summaries
+
+    def _parse_summary_attributes(self, summary_result: Dict) -> Dict:
+        result = {
+            j: summary_result.get(j).strip() if summary_result.get(j) else None
+            for j in self.SUM_RESULT_ATTRIBUTES
+        }
+        result['session'] = int(summary_result.get('session', 0))
+        result['pages'] = int(summary_result.get('pages', 0))
+        result['dateIssued'] = date_parse(result['dateIssued']).date()
+        result['lastModified'] = date_parse(result['lastModified'])
+        result['heldDates'] = [date_parse(j).date() for j in summary_result.get('heldDates', [])]
+        return result
 
     def _make_mods_request(self, mods_link: str) -> bytes:
         try:
@@ -181,4 +187,4 @@ class APIClient:
 
     def _get(self, url: str, params: Optional[Dict[str, str]] = {}) -> requests.Response:
         params['api_key'] = self.api_key
-        return requests.get(url, params=params)
+        return requests.get(url, params=params, timeout=4)

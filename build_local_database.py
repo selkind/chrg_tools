@@ -22,8 +22,8 @@ def main():
     handler = DB_Handler(engine)
 
     client = APIClient(api_key=os.getenv('GPO_API_KEY'))
-    package_ids = client.get_package_ids_by_congress(113)
-    package_summaries = client.get_package_summaries(packages=package_ids)
+    package_ids = client.get_package_ids_by_congress(111)
+    package_summaries = client.get_package_summaries(packages=package_ids[:1])
     with open('tests/summary_package_sample.pickle', 'wb+') as f:
         pickle.dump(package_summaries, f)
 

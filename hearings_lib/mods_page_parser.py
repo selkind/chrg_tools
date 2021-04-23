@@ -8,13 +8,11 @@ class ModsPageParser:
     MEMBER_XPATH = '//ns:extension/ns:congMember'
     MEMBER_NAME_XPATH = './ns:name[@type="authority-lnf"]'
 
-    MEMBER_ATTRIBUTES = ['chamber', 'congress', 'party', 'state']
+    MEMBER_ATTRIBUTES = ['chamber', 'party', 'state']
 
     COMMITTEE_XPATH = '//ns:extension/ns:congCommittee'
     COMMITTEE_NAME_XPATH = './ns:name[@type="authority-standard"]'
     SUBCOMMITTEE_XPATH = './ns:subCommittee/ns:name[@type="parsed"]'
-
-    COMMITTEE_ATTRIBUTES = ['chamber', 'congress']
 
     WITNESS_XPATH = '//ns:extension/ns:witness'
 
@@ -51,9 +49,13 @@ class ModsPageParser:
             else:
                 missed_member_count += 1
 
-            # If the xml contains congress members that were improperly parsed, the congmember element may not have all expected attributes
+            # If the xml contains congress members that were improperly parsed,
+            # the congmember element may not have all expected attributes
             # this code helps avoid attribute errors
-            stripped_attributes = {j: i.attrib.get(j).strip() if i.attrib.get(j) else None for j in self.MEMBER_ATTRIBUTES}
+            stripped_attributes = {
+                j: i.attrib.get(j).strip() if i.attrib.get(j) else None
+                for j in self.MEMBER_ATTRIBUTES
+            }
 
             result.append(
                 ParsedMember(
@@ -61,7 +63,7 @@ class ModsPageParser:
                     chamber=stripped_attributes['chamber'],
                     party=stripped_attributes['party'],
                     state=stripped_attributes['state'],
-                    congress=int(stripped_attributes['congress']) if stripped_attributes['congress'] else None
+                    congress=int(i.attrib.get('congress', 0))
                 )
             )
         if missed_member_count:
@@ -81,14 +83,16 @@ class ModsPageParser:
             else:
                 missed_committee_count += 1
 
-            subcommittees = [j.text.strip() if j.text else None for j in i.xpath(self.SUBCOMMITTEE_XPATH, namespaces=self.namespace)]
+            subcommittees = [
+                j.text.strip() if j.text else None
+                for j in i.xpath(self.SUBCOMMITTEE_XPATH, namespaces=self.namespace)
+            ]
 
-            stripped_attributes = {j: i.attrib.get(j).strip() if i.attrib.get(j) else None for j in self.COMMITTEE_ATTRIBUTES}
             result.append(
                 ParsedCommittee(
                     name=name,
-                    chamber=stripped_attributes['chamber'],
-                    congress=int(stripped_attributes['congress']) if stripped_attributes['congress'] else None,
+                    chamber=i.attrib.get('chamber', ''),
+                    congress=int(i.attrib.get('congress', 0)),
                     subcommittees=subcommittees
                 )
             )
