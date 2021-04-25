@@ -15,6 +15,7 @@ class APIClient:
     DEFAULT_LAST_MODIFIED_START_DATE: str = f'{datetime.datetime(1776, 1, 1, 0, 0, 0).isoformat()}Z'
     CHRG_ENDPOINT: str = f'{COLLECTION_LIST_ENDPOINT}/CHRG/{DEFAULT_LAST_MODIFIED_START_DATE}'
     DEFAULT_PAGE_SIZE: int = 100
+    RATE_LIMIT_STATUS_CODE = requests.codes.too_many_requests
 
     SKELETON_ATTRIBUTES = ['title', 'packageId', 'packageLink', 'lastModified']
     SUM_RESULT_ATTRIBUTES = ['chamber', 'suDocClassNumber', 'dateIssued']
@@ -56,7 +57,6 @@ class APIClient:
                 r = self._get(summary_url)
                 r.raise_for_status()
             except (
-                requests.exceptions.HTTPError,
                 requests.ConnectionError,
                 requests.exceptions.ReadTimeout,
                 requests.exceptions.Timeout,
@@ -66,6 +66,16 @@ class APIClient:
                 self.logger.info(f'{summary_url} returned error: {e}')
                 continue
                 # potentially add this url to a retry list.
+            except requests.exceptions.HTTPError as e:
+                self.logger.info(f'{summary_url} returned error: {e}')
+                if r.status_code == self.RATE_LIMIT_STATUS_CODE:
+                    rate_limit = r.headers['X-RateLimit-Limit']
+                    self.logger.warning(
+                        'The govinfo API limits the number of requests an API key can make in a period of time\n'
+                        + f'You have used all {rate_limit} of your available requests for this url ({r.url}).\n'
+                        + 'Please try again later.'
+                    )
+                    return summaries
 
             sum_result = r.json()
             parsed_sum = self._parse_summary_attributes(sum_result)
