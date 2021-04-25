@@ -21,11 +21,8 @@ class ModsPageParser:
     namespace: Dict[str, str]
     root: etree._Element
 
-    def __init__(self, content):
-        self.logger = logging.getLogger(__name__)
-        # self.logger.addHandler(logging.StreamHandler())
-        self.logger.addHandler(logging.FileHandler(f'{__name__}.log', 'w+'))
-        self.logger.setLevel(logging.INFO)
+    def __init__(self, content, logger):
+        self.logger = logger
         self.root = etree.XML(content)
         self.namespace = {'ns': self.root.nsmap[None]}
 
