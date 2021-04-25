@@ -15,15 +15,19 @@ class APIClient:
     CHRG_ENDPOINT: str = f'{COLLECTION_LIST_ENDPOINT}/CHRG/{DEFAULT_LAST_MODIFIED_START_DATE}'
     DEFAULT_PAGE_SIZE: int = 100
 
-    SKELETON_ATTRIBUTES = ['title', 'packageId', 'packageLink']
-    SUM_RESULT_ATTRIBUTES = ['chamber', 'suDocClassNumber', 'dateIssued', 'lastModified']
+    SKELETON_ATTRIBUTES = ['title', 'packageId', 'packageLink', 'lastModified']
+    SUM_RESULT_ATTRIBUTES = ['chamber', 'suDocClassNumber', 'dateIssued']
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, session: requests.Session):
         self.logger = logging.getLogger(__name__)
-        # self.logger.addHandler(logging.StreamHandler())
-        self.logger.addHandler(logging.FileHandler(f'{__name__}.log', 'w+'))
+        formatter = logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        fh = logging.FileHandler(f'{__name__}.log', 'w+')
+        fh.setLevel(logging.INFO)
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
         self.logger.setLevel(logging.INFO)
         self.api_key: str = api_key
+        self.session = session
 
     def get_package_summaries(self, packages: List[Dict]) -> List[ParsedSummary]:
         summaries = []
@@ -31,6 +35,7 @@ class APIClient:
             stripped_skeleton = {j: i.get(j).strip() if i.get(j) else None for j in self.SKELETON_ATTRIBUTES}
             title = stripped_skeleton['title']
             package_id = stripped_skeleton['packageId']
+            last_modified = date_parse(stripped_skeleton['lastModified'])
             self.logger.info(f'Parsing package {package_id}, {title}')
             congress = int(i.get('congress', 0))
             summary_url = stripped_skeleton['packageLink']
@@ -41,7 +46,7 @@ class APIClient:
                         title=title,
                         package_id=package_id,
                         congress=congress,
-                        url=summary_url
+                        url=summary_url,
                     )
                 )
                 continue
@@ -62,7 +67,6 @@ class APIClient:
                 # potentially add this url to a retry list.
 
             sum_result = r.json()
-            print(sum_result)
             parsed_sum = self._parse_summary_attributes(sum_result)
 
             try:
@@ -72,6 +76,7 @@ class APIClient:
                 summaries.append(
                     ParsedSummary(
                         package_id=package_id,
+                        last_modified=last_modified,
                         title=title,
                         congress=congress,
                         session=parsed_sum['session'],
@@ -80,14 +85,13 @@ class APIClient:
                         sudoc=parsed_sum['suDocClassNumber'],
                         pages=parsed_sum['pages'],
                         date_issued=parsed_sum['dateIssued'],
-                        last_modified=parsed_sum['lastModified'],
                         dates=parsed_sum['heldDates']
                     )
                 )
                 continue
             else:
                 mods_page = self._make_mods_request(mods_link)
-                mods = ModsPageParser(mods_page).create_parsed_mods_page() if mods_page else None
+                mods = ModsPageParser(mods_page, self.logger).create_parsed_mods_page() if mods_page else None
 
             summaries.append(
                 ParsedSummary(
@@ -100,7 +104,7 @@ class APIClient:
                     sudoc=parsed_sum['suDocClassNumber'],
                     pages=parsed_sum['pages'],
                     date_issued=parsed_sum['dateIssued'],
-                    last_modified=parsed_sum['lastModified'],
+                    last_modified=last_modified,
                     dates=parsed_sum['heldDates'],
                     metadata=mods
                 )
@@ -115,7 +119,6 @@ class APIClient:
         result['session'] = int(summary_result.get('session', 0))
         result['pages'] = int(summary_result.get('pages', 0))
         result['dateIssued'] = date_parse(result['dateIssued']).date()
-        result['lastModified'] = date_parse(result['lastModified'])
         result['heldDates'] = [date_parse(j).date() for j in summary_result.get('heldDates', [])]
         return result
 
@@ -136,13 +139,13 @@ class APIClient:
         else:
             return mods_r.content
 
-    def get_package_ids_by_congress(self, congress: int) -> Dict:
+    def get_package_ids_by_congress(self, congress: int) -> List[Dict]:
         params = {
             'congress': str(congress)
         }
         return self._get_packages(params)
 
-    def _get_packages(self, params: Dict[str, str]) -> List[Dict]:
+    def _get_packages(self, params: Optional[Dict[str, str]] = {}) -> List[Dict]:
         params['offset'] = str(0)
         params['pageSize'] = str(self.DEFAULT_PAGE_SIZE)
         try:
@@ -187,4 +190,4 @@ class APIClient:
 
     def _get(self, url: str, params: Optional[Dict[str, str]] = {}) -> requests.Response:
         params['api_key'] = self.api_key
-        return requests.get(url, params=params, timeout=4)
+        return self.session.get(url, params=params, timeout=4)
