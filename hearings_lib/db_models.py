@@ -31,8 +31,6 @@ class Committee(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text)
     chamber = Column(String(10))
-    congress = Column(Integer)
-    code = Column(String(15), unique=True)
 
     subcommittees = relationship('SubCommittee', back_populates='committee')
     hearing_participation = relationship('ParticipantCommittee', back_populates='committee')
@@ -81,7 +79,6 @@ class CongressMember(Base):
     name = Column(String(50))
     chamber = Column(String(10))
     party = Column(String(1))
-    congress = Column(Integer)
     state = Column(String(30))
     attendance = relationship('MemberAttendance', back_populates='member')
 

@@ -1,5 +1,6 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from tqdm.auto import tqdm
+import mmh3
 from sqlalchemy.engine.base import Engine
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -18,10 +19,38 @@ from hearings_lib.summary_parsing_types import ParsedSummary, ParsedCommittee, P
 
 
 class DB_Handler:
-    engine: Engine
+    HASH_SEED = 42
 
     def __init__(self, engine):
-        self.engine = engine
+        self.engine: Engine = engine
+        self.member_cache: Dict[str, CongressMember] = {}
+        self.committee_cache: Dict[str, Committee] = {}
+        self._initialize_member_cache(self.engine)
+        self._initialize_committee_cache(self.engine)
+
+    def _make_congress_member_hash(self, member) -> str:
+        # member can be either CongressMember or ParsedMember
+        return self._make_hash(f'{member.name}{member.chamber}{member.party}{member.state}')
+
+    def _initialize_member_cache(self, engine) -> None:
+        with Session(engine) as conn:
+            self.member_cache = {
+                self._make_congress_member_hash(i[0]): i[0]
+                for i in conn.execute(select(CongressMember))
+            }
+
+    def _make_committee_hash(self, committee) -> str:
+        return self._make_hash(f'{committee.name}{committee.chamber}')
+
+    def _initialize_committee_cache(self, engine) -> None:
+        with Session(engine) as conn:
+            self.committee_cache = {
+                self._make_committee_hash(i[0]): i[0]
+                for i in conn.execute(select(Committee))
+            }
+
+    def _make_hash(self, hash_input: str) -> str:
+        return str(mmh3.hash(hash_input, self.HASH_SEED, signed=False))
 
     def sync_hearing_records(self, package_summaries: List[ParsedSummary]) -> None:
         with Session(self.engine) as session:
@@ -68,17 +97,13 @@ class DB_Handler:
         participant_committees = []
         participant_subcommittees = []
         for i in parsed_committees:
-            existing_committee = session.execute(
-                select(Committee).filter_by(
-                    name=i.name,
-                    chamber=i.chamber,
-                    congress=i.congress
-                )
-            ).scalar()
+            committee_hash = self._make_committee_hash(i)
+            existing_committee = self.committee_cache.get(committee_hash)
+
             if existing_committee:
                 for j in i.subcommittees:
                     existing_subcommittee: SubCommittee = session.execute(
-                        select(SubCommittee).filter_by(name=j)
+                        select(SubCommittee).filter_by(name=j, committee_id=existing_committee.id)
                     ).scalar()
                     if existing_subcommittee:
                         participant_subcommittees.append(
@@ -100,7 +125,9 @@ class DB_Handler:
                 participant_committees.append(ParticipantCommittee(committee=existing_committee))
                 continue
 
-            new_committee = Committee(name=i.name, chamber=i.chamber, congress=i.congress)
+            new_committee = Committee(name=i.name, chamber=i.chamber)
+            self.committee_cache[committee_hash] = new_committee
+
             participant_subcommittees = participant_subcommittees + [
                 ParticipantSubCommittee(
                     subcommittee=SubCommittee(name=j, committee=new_committee)
@@ -123,15 +150,8 @@ class DB_Handler:
     def _process_unique_members(self, parsed_members: List[ParsedMember], session: Session) -> List[MemberAttendance]:
         attending_members = []
         for i in parsed_members:
-            existing_member = session.execute(
-                select(CongressMember).filter_by(
-                    name=i.name,
-                    chamber=i.chamber,
-                    party=i.party,
-                    congress=i.congress,
-                    state=i.state
-                )
-            ).scalar()
+            member_hash = self._make_congress_member_hash(i)
+            existing_member = self.member_cache.get(member_hash)
 
             if existing_member:
                 attending_members.append(MemberAttendance(member=existing_member))
@@ -140,8 +160,8 @@ class DB_Handler:
                 name=i.name,
                 chamber=i.chamber,
                 party=i.party,
-                congress=i.congress,
                 state=i.state
             )
             attending_members.append(MemberAttendance(member=new_member))
+            self.member_cache[member_hash] = new_member
         return attending_members
