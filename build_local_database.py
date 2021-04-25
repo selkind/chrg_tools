@@ -35,12 +35,12 @@ def main():
     with requests.Session() as s:
         client = APIClient(api_key=os.getenv('GPO_API_KEY'), session=s)
         packages = []
-        for i in range(118):
+        for i in range(100, 101):
             new_or_modified_packages = [
                 i for i in client.get_package_ids_by_congress(i)
                 if i['packageId'] not in existing_packages
-                or date_parse(i['lastModified']).replace(tzinfo=dateutil.tz.tzutc())
-                > existing_packages[i['packageId']].replace(tzinfo=dateutil.tz.tzutc())
+                or date_parse(i['lastModified'])
+                > existing_packages[i['packageId']].replace(tzinfo=dateutil.tz.tzlocal())
             ]
 
             packages = packages + new_or_modified_packages

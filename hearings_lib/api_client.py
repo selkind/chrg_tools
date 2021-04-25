@@ -1,6 +1,7 @@
 import requests
 import datetime
 from dateutil.parser import parse as date_parse
+import dateutil.tz
 import logging
 from typing import Optional, Dict, List
 from tqdm.auto import tqdm
@@ -35,7 +36,7 @@ class APIClient:
             stripped_skeleton = {j: i.get(j).strip() if i.get(j) else None for j in self.SKELETON_ATTRIBUTES}
             title = stripped_skeleton['title']
             package_id = stripped_skeleton['packageId']
-            last_modified = date_parse(stripped_skeleton['lastModified'])
+            last_modified = date_parse(stripped_skeleton['lastModified']).replace(tzinfo=dateutil.tz.gettz(name='EST'))
             self.logger.info(f'Parsing package {package_id}, {title}')
             congress = int(i.get('congress', 0))
             summary_url = stripped_skeleton['packageLink']
@@ -118,8 +119,11 @@ class APIClient:
         }
         result['session'] = int(summary_result.get('session', 0))
         result['pages'] = int(summary_result.get('pages', 0))
-        result['dateIssued'] = date_parse(result['dateIssued']).date()
-        result['heldDates'] = [date_parse(j).date() for j in summary_result.get('heldDates', [])]
+        result['dateIssued'] = date_parse(result['dateIssued']).replace(tzinfo=dateutil.tz.gettz(name='EST'))
+        result['heldDates'] = [
+            date_parse(j).replace(tzinfo=dateutil.tz.gettz(name='EST')).date()
+            for j in summary_result.get('heldDates', [])
+        ]
         return result
 
     def _make_mods_request(self, mods_link: str) -> bytes:

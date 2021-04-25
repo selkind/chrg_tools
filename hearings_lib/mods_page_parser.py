@@ -1,7 +1,6 @@
 from typing import Dict, List
 from lxml import etree
 from hearings_lib.summary_parsing_types import ParsedCommittee, ParsedMember, ParsedModsData
-import logging
 
 
 class ModsPageParser:
