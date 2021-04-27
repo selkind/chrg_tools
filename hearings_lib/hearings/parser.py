@@ -34,7 +34,7 @@ class Parser:
     def speaker_count(self):
         return len(self.speakers)
 
-    def parse(self, transcript_id, transcript) -> None:
+    def parse(self, transcript) -> None:
         # clear out stored state for new transcript
         self.output = []
         self.speakers = []

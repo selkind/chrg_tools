@@ -138,14 +138,7 @@ class DB_Handler:
         return participant_committees, participant_subcommittees
 
     def _process_unique_witnesses(self, parsed_witnesses: List[str], session: Session) -> List[HearingWitness]:
-        witnesses = []
-        for i in parsed_witnesses:
-            existing_witness = session.execute(select(HearingWitness).filter_by(name=i)).scalar()
-            if existing_witness:
-                witnesses.append(existing_witness)
-                continue
-            witnesses.append(HearingWitness(name=i))
-        return witnesses
+        return [HearingWitness(name=i) for i in parsed_witnesses]
 
     def _process_unique_members(self, parsed_members: List[ParsedMember], session: Session) -> List[MemberAttendance]:
         attending_members = []
