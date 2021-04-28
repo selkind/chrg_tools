@@ -54,6 +54,7 @@ class DB_Handler:
 
     def sync_hearing_records(self, package_summaries: List[ParsedSummary]) -> None:
         with Session(self.engine) as session:
+            counter = 0
             for i in tqdm(package_summaries, 'Adding summaries and metadata to database'):
                 current_hearing = session.execute(select(Hearing).filter_by(package_id=i.package_id)).scalar()
                 if current_hearing:
@@ -64,6 +65,10 @@ class DB_Handler:
                 else:
                     processed_hearing = self._process_hearing(i, Hearing(package_id=i.package_id), session)
                     session.add(processed_hearing)
+                counter += 1
+                if counter == 100:
+                    counter = 0
+                    session.commit()
             session.commit()
 
     def _process_hearing(self, parsed: ParsedSummary, hearing: Hearing, session: Session) -> Hearing:
