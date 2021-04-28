@@ -1,4 +1,6 @@
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 import datetime
 from dateutil.parser import parse as date_parse
 import dateutil.tz
@@ -7,6 +9,23 @@ from typing import Optional, Dict, List
 from tqdm.auto import tqdm
 from hearings_lib.mods_page_parser import ModsPageParser
 from hearings_lib.summary_parsing_types import ParsedSummary
+
+DEFAULT_TIMEOUT = 3.1  # seconds
+
+
+class APIHTTPAdapter(HTTPAdapter):
+    TIMEOUT_KEY = 'timeout'
+
+    def __init__(self, *args, **kwargs):
+        self.timeout = kwargs.get(self.TIMEOUT_KEY, DEFAULT_TIMEOUT)
+        kwargs.pop(self.TIMEOUT_KEY, None)
+        super().__init__(*args, **kwargs)
+
+    def send(self, request, **kwargs):
+        if self.TIMEOUT_KEY not in kwargs:
+            kwargs[self.TIMEOUT_KEY] = self.timeout
+
+        return super().send(request, **kwargs)
 
 
 class APIClient:
@@ -28,8 +47,27 @@ class APIClient:
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
         self.logger.setLevel(logging.INFO)
-        self.api_key: str = api_key
-        self.session = session
+
+        self.api_key = api_key
+        self.session = self._configure_session(session)
+
+    def _configure_session(self, session: requests.Session) -> requests.Session:
+        retry_strategy = Retry(
+            total=3,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=['GET'],
+            backoff_factor=1
+        )
+
+        adapter = APIHTTPAdapter(max_retries=retry_strategy)
+        session.mount('https://', adapter)
+        session.mount('http://', adapter)
+
+        def raise_for_status(response, *args, **kwargs):
+            return response.raise_for_status()
+        session.hooks['response'] = [raise_for_status]
+
+        return session
 
     def get_package_summaries(self, packages: List[Dict]) -> List[ParsedSummary]:
         summaries = []
@@ -55,7 +93,6 @@ class APIClient:
 
             try:
                 r = self._get(summary_url)
-                r.raise_for_status()
             except (
                 requests.ConnectionError,
                 requests.exceptions.ReadTimeout,
@@ -70,11 +107,11 @@ class APIClient:
                 self.logger.info(f'{summary_url} returned error: {e}')
                 if r.status_code == self.RATE_LIMIT_STATUS_CODE:
                     rate_limit = r.headers['X-RateLimit-Limit']
-                    self.logger.warning(
-                        'The govinfo API limits the number of requests an API key can make in a period of time\n'
-                        + f'You have used all {rate_limit} of your available requests for this url ({r.url}).\n'
-                        + 'Please try again later.'
-                    )
+                    self.logger.warning('\n'.join([
+                        'The govinfo API limits the number of requests an API key can make in a period of time.',
+                        f'You have used all {rate_limit} of your available requests for this url ({r.url}).',
+                        'Please try again later.'
+                    ]))
                     return summaries
 
             sum_result = r.json()
@@ -139,7 +176,6 @@ class APIClient:
     def _make_mods_request(self, mods_link: str) -> bytes:
         try:
             mods_r = self._get(mods_link)
-            mods_r.raise_for_status()
         except (
             requests.exceptions.HTTPError,
             requests.ConnectionError,
@@ -164,7 +200,6 @@ class APIClient:
         params['pageSize'] = str(self.DEFAULT_PAGE_SIZE)
         try:
             first_response = self._get(self.CHRG_ENDPOINT, params=params)
-            first_response.raise_for_status()
         except (
             requests.exceptions.HTTPError,
             requests.ConnectionError,
@@ -184,7 +219,6 @@ class APIClient:
             params['offset']: str = str(i * self.DEFAULT_PAGE_SIZE)
             try:
                 r: requests.Response = self._get(self.CHRG_ENDPOINT, params=params)
-                r.raise_for_status()
             except (
                 requests.exceptions.HTTPError,
                 requests.ConnectionError,
@@ -204,4 +238,4 @@ class APIClient:
 
     def _get(self, url: str, params: Optional[Dict[str, str]] = {}) -> requests.Response:
         params['api_key'] = self.api_key
-        return self.session.get(url, params=params, timeout=4)
+        return self.session.get(url, params=params)
