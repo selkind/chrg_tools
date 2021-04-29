@@ -10,6 +10,7 @@
 *.zip
 current/**
 tests/*.sql
+tests/sample_transcripts/*
 
 # env file
 **.env
