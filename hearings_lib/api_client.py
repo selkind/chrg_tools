@@ -33,6 +33,7 @@ class APIClient:
     COLLECTION_LIST_ENDPOINT: str = f'{BASE_URL}/collections'
     DEFAULT_LAST_MODIFIED_START_DATE: str = f'{datetime.datetime(1776, 1, 1, 0, 0, 0).isoformat()}Z'
     CHRG_ENDPOINT: str = f'{COLLECTION_LIST_ENDPOINT}/CHRG/{DEFAULT_LAST_MODIFIED_START_DATE}'
+    PACKAGE_ENDPOINT: str = f'{BASE_URL}/packages/'
     DEFAULT_PAGE_SIZE: int = 100
     RATE_LIMIT_STATUS_CODE = requests.codes.too_many_requests
 
@@ -68,6 +69,25 @@ class APIClient:
         session.hooks['response'] = [raise_for_status]
 
         return session
+
+    def get_transcripts_by_package_id(self, package_ids: List[str]) -> Dict[str, str]:
+        transcripts: Dict[str, str] = {}
+        for i in package_ids:
+            transcript_endpoint = f'{self.PACKAGE_ENDPOINT}/{i}/htm'
+            try:
+                r = self._get(transcript_endpoint)
+            except (
+                requests.ConnectionError,
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.Timeout,
+                requests.exceptions.ConnectTimeout,
+                OSError
+            ) as e:
+                self.logger.info(f'{transcript_endpoint} returned error: {e}')
+                transcripts[i] = None
+                continue
+            transcripts[i] = r.content
+        return transcripts
 
     def get_package_summaries(self, packages: List[Dict]) -> List[ParsedSummary]:
         summaries = []

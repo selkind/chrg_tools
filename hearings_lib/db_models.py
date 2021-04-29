@@ -17,6 +17,10 @@ class Hearing(Base):
     pages = Column(Integer)
     date_issued = Column(Date)
     last_modified = Column(DateTime)
+
+    transcript = relationship('HearingTranscript', back_populates='hearing')
+    transcript_entries = relationship('HearingEntries', back_populates='hearing')
+
     members = relationship('MemberAttendance', back_populates='hearing')
     witnesses = relationship('HearingWitness', back_populates='hearing')
 
@@ -24,6 +28,29 @@ class Hearing(Base):
 
     committees = relationship('ParticipantCommittee', back_populates='hearing')
     subcommittees = relationship('ParticipantSubCommittee', back_populates='hearing')
+
+
+class HearingTranscript(Base):
+    __tablename__ = 'transcripts'
+    package_id = Column(String(25), ForeignKey('hearing_summaries.package_id'), primary_key=True)
+    body = Column(Text)
+    hearing = relationship('Hearing', back_populates='transcript')
+    entries = relationship('HearingEntries', back_populates='transcript')
+
+
+class HearingEntries(Base):
+    __tablename__ = 'entries'
+    id = Column(Integer, primary_key=True)
+    parsed_name = Column(Text)
+    body = Column(Text)
+    sequence = Column(Integer)
+    member_id = Column(Integer, ForeignKey('members.id'))
+    package_id = Column(String(25), ForeignKey('hearing_summaries.package_id'))
+    transcript_id = Column(String(25), ForeignKey('transcripts.package_id'))
+
+    member = relationship('CongressMember', back_populates='entries')
+    hearing = relationship('Hearing', back_populates='transcript_entries')
+    transcript = relationship('HearingTranscript', back_populates='entries')
 
 
 class Committee(Base):
@@ -81,6 +108,7 @@ class CongressMember(Base):
     party = Column(String(1))
     state = Column(String(30))
     attendance = relationship('MemberAttendance', back_populates='member')
+    entries = relationship('HearingEntries', back_populates='member')
 
 
 class HearingWitness(Base):
