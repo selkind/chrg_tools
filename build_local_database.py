@@ -1,5 +1,4 @@
 import os
-import pickle
 import sqlalchemy
 import requests
 from dateutil.parser import parse as date_parse
@@ -45,8 +44,6 @@ def main():
 
             packages = packages + new_or_modified_packages
         package_summaries = client.get_package_summaries(packages=packages)
-    with open('tests/summary_package_sample.pickle', 'wb+') as f:
-        pickle.dump(package_summaries, f)
 
     handler.sync_hearing_records(package_summaries)
 
