@@ -19,7 +19,7 @@ class Hearing(Base):
     last_modified = Column(DateTime)
 
     transcript = relationship('HearingTranscript', back_populates='hearing')
-    transcript_entries = relationship('HearingEntries', back_populates='hearing')
+    transcript_entries = relationship('HearingEntry', back_populates='hearing')
 
     members = relationship('MemberAttendance', back_populates='hearing')
     witnesses = relationship('HearingWitness', back_populates='hearing')
@@ -35,10 +35,10 @@ class HearingTranscript(Base):
     package_id = Column(String(25), ForeignKey('hearing_summaries.package_id'), primary_key=True)
     body = Column(Text)
     hearing = relationship('Hearing', back_populates='transcript')
-    entries = relationship('HearingEntries', back_populates='transcript')
+    entries = relationship('HearingEntry', back_populates='transcript')
 
 
-class HearingEntries(Base):
+class HearingEntry(Base):
     __tablename__ = 'entries'
     id = Column(Integer, primary_key=True)
     parsed_name = Column(Text)
@@ -108,7 +108,7 @@ class CongressMember(Base):
     party = Column(String(1))
     state = Column(String(30))
     attendance = relationship('MemberAttendance', back_populates='member')
-    entries = relationship('HearingEntries', back_populates='member')
+    entries = relationship('HearingEntry', back_populates='member')
 
 
 class HearingWitness(Base):
