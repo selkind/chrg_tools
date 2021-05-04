@@ -1,9 +1,14 @@
 import os
-import requests
 import sqlalchemy
+import requests
+from dateutil.parser import parse as date_parse
+import dateutil.tz
+from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from hearings_lib.hearings.load_project_env import ProjectEnv
 from hearings_lib.db_models import (
+    Base,
     Hearing
 )
 from hearings_lib.db_handler import DB_Handler
@@ -23,8 +28,29 @@ def main():
     )
 
     engine = sqlalchemy.create_engine(connection_uri, future=True)
+    if not database_exists(connection_uri):
+        create_database(connection_uri)
+    Base.metadata.create_all(engine)
 
     handler = DB_Handler(engine)
+    with Session(handler.engine) as db:
+        existing_packages = {i[0]: i[1] for i in db.execute(select(Hearing.package_id, Hearing.last_modified))}
+
+    with requests.Session() as s:
+        client = APIClient(api_key=os.getenv('GPO_API_KEY'), session=s)
+        packages = []
+        for i in range(117, 118):
+            new_or_modified_packages = [
+                i for i in client.get_package_ids_by_congress(i)
+                if i['packageId'] not in existing_packages
+                or date_parse(i['lastModified'])
+                > existing_packages[i['packageId']].replace(tzinfo=dateutil.tz.tzlocal())
+            ]
+
+            packages = packages + new_or_modified_packages
+        package_summaries = client.get_package_summaries(packages=packages)
+
+    handler.sync_hearing_records(package_summaries)
 
     with Session(handler.engine) as db:
         packages_to_fetch = [i[0] for i in db.execute(sqlalchemy.select(Hearing).filter_by(congress=117))]
@@ -33,10 +59,7 @@ def main():
         client = APIClient(api_key=os.getenv('GPO_API_KEY'), session=s)
         transcripts = client.get_transcripts_by_package_id([i.package_id for i in packages_to_fetch])
 
-    for i in transcripts:
-        if transcripts[i]:
-            with open(f'tests/transcript_{i}.txt', 'wb+') as f:
-                f.write(transcripts[i])
+    handler.sync_transcripts(transcripts)
 
 
 if __name__ == '__main__':
