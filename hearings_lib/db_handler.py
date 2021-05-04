@@ -66,10 +66,10 @@ class DB_Handler:
     def sync_transcripts(self, transcripts: Dict[str, str]) -> None:
         with Session(self.engine) as session:
             counter = 0
-            for i in transcripts:
+            for i in tqdm(transcripts, 'Adding or updating transcripts to database'):
                 body_hash = self._make_transcript_body_hash(transcripts[i])
                 if i in self.transcript_cache:
-                    if self.transcript[i] == body_hash:
+                    if self.transcript_cache[i] == body_hash:
                         continue
                     existing_transcript = session.execute(
                         select(HearingTranscript).filter_by(package_id=i)

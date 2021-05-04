@@ -86,7 +86,7 @@ class APIClient:
                 self.logger.info(f'{transcript_endpoint} returned error: {e}')
                 transcripts[i] = None
                 continue
-            transcripts[i] = r.content
+            transcripts[i] = r.content.decode('UTF-8')
         return transcripts
 
     def get_package_summaries(self, packages: List[Dict]) -> List[ParsedSummary]:
