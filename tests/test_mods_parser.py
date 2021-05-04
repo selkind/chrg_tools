@@ -14,8 +14,16 @@ from tests.mod_fixtures import (
 
 
 class TestModsParser:
-    TEST_MODS_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "example_mods.xml")
-    ALT_MODS_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'alt_mods.xml')
+    TEST_MODS_PATH = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        'sample_mods',
+        "example_mods.xml"
+    )
+    ALT_MODS_PATH = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        'sample_mods',
+        'alt_mods.xml'
+    )
 
     @pytest.fixture
     def mods_content(self):

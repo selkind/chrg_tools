@@ -10,7 +10,11 @@ from hearings_lib.db_handler import DB_Handler
 
 class TestProcessUniqueSubrecords:
 
-    TEST_DATA_PATH = f'{os.path.abspath(os.path.dirname(__file__))}/summary_package_sample.pickle'
+    TEST_DATA_PATH = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        'api_client_data_pickles',
+        'summary_package_sample.pickle'
+    )
 
     @pytest.fixture
     def package_summaries(self):

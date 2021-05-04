@@ -11,13 +11,16 @@ from hearings_lib.api_client import APIClient
 
 class TestAPIClient:
     TEST_API_KEY = "1234abc"
-    EXAMPLE_SUMMARY_JSON_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'example_summary_response.json')
+    EXAMPLE_SUMMARY_JSON_PATH = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        'sample_api_reponses',
+        'example_summary_response.json'
+    )
 
     @pytest.fixture
     def sample_summary_response(self):
         with open(self.EXAMPLE_SUMMARY_JSON_PATH, 'r') as f:
             return json.load(f)
-        
 
     @pytest.fixture
     def mocked_responses(self):
@@ -31,7 +34,11 @@ class TestAPIClient:
     @pytest.fixture
     def package_by_congress_pattern(self, api_client):
         return re.compile(
-            f'{api_client.CHRG_ENDPOINT}\\?congress=[0-9]+&offset=([0]|[1-9][0-9]?00)&pageSize=100&api_key={self.TEST_API_KEY}'
+            (
+                f'{api_client.CHRG_ENDPOINT}\\?'
+                'congress=[0-9]+&offset=([0]|[1-9][0-9]?00)&'
+                f'pageSize=100&api_key={self.TEST_API_KEY}'
+            )
         )
 
     def test_get_summary_attributes(self, sample_summary_response, api_client):
