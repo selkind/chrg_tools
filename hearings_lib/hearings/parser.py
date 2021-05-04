@@ -1,6 +1,6 @@
 import re
 from collections import namedtuple
-from typing import NamedTuple
+from typing import NamedTuple, Tuple, List, Dict, Set
 
 
 class TranscriptStartMatchException(Exception):
@@ -22,22 +22,7 @@ class Parser:
     )
     Speaker: NamedTuple = namedtuple('Speaker', ['name', 'member_id'])
 
-    def __init__(self):
-        self.output: list[tuple] = []
-        self.speakers: dict[str, int] = {}
-
-    @property
-    def contribution_count(self):
-        return len(self.output)
-
-    @property
-    def speaker_count(self):
-        return len(self.speakers)
-
-    def parse(self, transcript) -> None:
-        # clear out stored state for new transcript
-        self.output = []
-        self.speakers = []
+    def parse(self, transcript) -> Tuple[List[Dict], Set[str]]:
         transcript_start: int = None
         for i, line in enumerate(transcript):
             start_match: re.MatchObject = self.TRANSCRIPT_START_PATTERN.search(line)
@@ -47,11 +32,14 @@ class Parser:
         if not transcript_start:
             raise TranscriptStartMatchException("The beginning of the testimony could not be found.")
 
+        speakers: set = set()
+        output = []
         contribution_start: int = None
         speaker: str = None
+        seq = 1
         for i in range(transcript_start, len(transcript)):
+            transcript[i] = transcript[i].strip()
             line: str = transcript[i]
-            transcript[i] = line.strip()
 
             end_line: re.MatchObject = self.TRANSCRIPT_END_PATTERN.search(line)
             statement: re.MatchObject = self.PREPARED_STATEMENT_PATTERN.search(line)
@@ -59,24 +47,28 @@ class Parser:
 
             if end_line:
                 # must replace carriage return new lines first.
-                entry: str = self._make_entry(transcript[contribution_start: i])
+                output.append({
+                    'speaker': speaker,
+                    'body': self._make_entry(transcript[contribution_start: i]),
+                    'seq': seq
+                })
                 break
 
             if statement or contribution:
                 if contribution_start:
-                    entry = self._make_entry(transcript[contribution_start: i])
-                    speaker = self.config
+                    output.append({
+                        'speaker': speaker,
+                        'body': self._make_entry(transcript[contribution_start: i]),
+                        'seq': seq
+                    })
                 speaker = self._configure_speaker(statement) if statement else self._configure_speaker(contribution)
+                speakers.add(speaker)
                 contribution_start = i
+                seq += 1
+        return output, speakers
 
-    def _configure_speaker(self, regex_match: re.MatchObject) -> None:
-        name: str = f"{regex_match.group(1).replace('.', '')} {regex_match.group(2).replace('.', '').upper()}"
-        if name not in self.speakers:
-            self.speakers[name] = self._match_speaker_to_member_id(name)
-        self.output.append()
-
-    def _match_speaker_to_member_id(self, name: str) -> int:
-        return 0
+    def _configure_speaker(self, regex_match: re.MatchObject) -> str:
+        return f"{regex_match.group(1).replace('.', '')} {regex_match.group(2).replace('.', '').upper()}"
 
     def _make_entry(self, lines: list[str]) -> str:
         return " ".join(lines).replace('\r\n', '').replace('\n', '')
