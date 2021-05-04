@@ -34,6 +34,7 @@ class HearingTranscript(Base):
     __tablename__ = 'transcripts'
     package_id = Column(String(25), ForeignKey('hearing_summaries.package_id'), primary_key=True)
     body = Column(Text)
+    body_hash = Column(String(10))
     hearing = relationship('Hearing', back_populates='transcript')
     entries = relationship('HearingEntry', back_populates='transcript')
 
@@ -41,6 +42,7 @@ class HearingTranscript(Base):
 class HearingEntry(Base):
     __tablename__ = 'entries'
     id = Column(Integer, primary_key=True)
+    transcript_hash = Column(String(10))
     parsed_name = Column(Text)
     body = Column(Text)
     sequence = Column(Integer)

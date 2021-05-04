@@ -6,6 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from hearings_lib.db_models import (
     Hearing,
+    HearingTranscript,
+    HearingEntry,
     Committee,
     SubCommittee,
     ParticipantCommittee,
@@ -23,18 +25,27 @@ class DB_Handler:
 
     def __init__(self, engine):
         self.engine: Engine = engine
-        self.member_cache: Dict[str, CongressMember] = {}
-        self.committee_cache: Dict[str, Committee] = {}
-        self._initialize_member_cache(self.engine)
-        self._initialize_committee_cache(self.engine)
+        self.member_cache: Dict[str, CongressMember] = self._initialize_member_cache(self.engine)
+        self.committee_cache: Dict[str, Committee] = self._initialize_committee_cache(self.engine)
+        self.transcript_cache: Dict[str, int] = self._initialize_transcript_cache(self.engine)
+
+    def _make_transcript_body_hash(self, body) -> str:
+        return self._make_hash(body)
+
+    def _initialize_transcript_cache(self, engine) -> Dict[str, int]:
+        with Session(engine) as conn:
+            return {
+                i[0].package_id: i[0].body_hash
+                for i in conn.execute(select(HearingTranscript))
+            }
 
     def _make_congress_member_hash(self, member) -> str:
         # member can be either CongressMember or ParsedMember
         return self._make_hash(f'{member.name}{member.chamber}{member.party}{member.state}')
 
-    def _initialize_member_cache(self, engine) -> None:
+    def _initialize_member_cache(self, engine) -> Dict[str, CongressMember]:
         with Session(engine) as conn:
-            self.member_cache = {
+            return {
                 self._make_congress_member_hash(i[0]): i[0]
                 for i in conn.execute(select(CongressMember))
             }
@@ -42,15 +53,42 @@ class DB_Handler:
     def _make_committee_hash(self, committee) -> str:
         return self._make_hash(f'{committee.name}{committee.chamber}')
 
-    def _initialize_committee_cache(self, engine) -> None:
+    def _initialize_committee_cache(self, engine) -> Dict[str, Committee]:
         with Session(engine) as conn:
-            self.committee_cache = {
+            return {
                 self._make_committee_hash(i[0]): i[0]
                 for i in conn.execute(select(Committee))
             }
 
     def _make_hash(self, hash_input: str) -> str:
         return str(mmh3.hash(hash_input, self.HASH_SEED, signed=False))
+
+    def sync_transcripts(self, transcripts: Dict[str, str]) -> None:
+        with Session(self.engine) as session:
+            counter = 0
+            for i in transcripts:
+                body_hash = self._make_transcript_body_hash(transcripts[i])
+                if i in self.transcript_cache:
+                    if self.transcript[i] == body_hash:
+                        continue
+                    existing_transcript = session.execute(
+                        select(HearingTranscript).filter_by(package_id=i)
+                    ).scalar_one()
+                    existing_transcript.body = transcripts[i]
+                    existing_transcript.body_hash = body_hash
+                else:
+                    session.add(HearingTranscript(
+                        package_id=i,
+                        body=transcripts[i],
+                        body_hash=body_hash
+                    ))
+                self.transcript_cache[i] = body_hash
+
+                counter += 1
+                if counter == 100:
+                    counter = 0
+                    session.commit()
+            session.commit()
 
     def sync_hearing_records(self, package_summaries: List[ParsedSummary]) -> None:
         with Session(self.engine) as session:
