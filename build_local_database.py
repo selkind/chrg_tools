@@ -1,6 +1,7 @@
 import os
 import sqlalchemy
 import requests
+import csv
 from dateutil.parser import parse as date_parse
 import dateutil.tz
 from sqlalchemy_utils import database_exists, create_database
@@ -40,7 +41,7 @@ def main():
     with requests.Session() as s:
         client = APIClient(api_key=os.getenv('GPO_API_KEY'), session=s)
         packages = []
-        for i in range(118):
+        for i in range(111, 115):
             new_or_modified_packages = [
                 i for i in client.get_package_ids_by_congress(i)
                 if i['packageId'] not in existing_packages
@@ -52,6 +53,21 @@ def main():
         package_summaries = client.get_package_summaries(packages=packages)
 
     handler.sync_hearing_records(package_summaries)
+
+    with open(os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        'tests',
+        'study_ids',
+        'file_name_id_map.csv'
+    ), 'r') as f:
+        study_files = [i for i in csv.DictReader(f)]
+
+    study_ids = [i['hearing_id'] for i in study_files]
+    with requests.Session() as s:
+        client = APIClient(api_key=os.getenv('GPO_API_KEY'), session=s)
+        transcripts = client.get_transcripts_by_package_id(study_ids)
+    handler.sync_transcripts(transcripts)
+
 
 
 if __name__ == '__main__':
