@@ -1,6 +1,5 @@
 import re
-from collections import namedtuple
-from typing import NamedTuple, Tuple, List, Dict, Set
+from typing import Tuple, List, Dict, Set
 
 
 class TranscriptStartMatchException(Exception):
@@ -8,29 +7,28 @@ class TranscriptStartMatchException(Exception):
 
 
 class Parser:
-    TRANSCRIPT_START_PATTERN: re.RegexObject = re.compile(
-        r'The\\s+.{1,5}ommittee(s?)\\s+met,\\s+pursuant\\s+to\\s+(notice|call),\\s+at'
+    TRANSCRIPT_START_PATTERN = re.compile(
+        r'The\s+.{1,5}ommittee(s?)\s+met,\s+pursuant\s+to\s+(notice|call),\s+at'
     )
-    PREPARED_STATEMENT_PATTERN: re.RegexObject = re.compile(
-        r'^\\[The\\s+prepared\\s+statement\\s+of\\s+([A-Z,a-z]*\\.?)\\s+([A-Z,a-z,\\-]+)'
+    PREPARED_STATEMENT_PATTERN = re.compile(
+        r'^\[The\s+prepared\s+statement\s+of\s+([A-Z,a-z]*\.?)\s+([A-Z,a-z,\-]+)'
     )
-    STANDARD_SPEAKER_PATTERN: re.RegexObject = re.compile(
-        r'^([A-Z][a-z]+\\.?)\\s+(([A-Z][A-z]+-){0,1}(([A-Z]){2,})\\.)\\s+'
+    STANDARD_SPEAKER_PATTERN = re.compile(
+        r'^([A-Z][a-z]+\.?)\s+(([A-Z][A-z]+-){0,1}(([A-z]){2,}))\.\s+'
     )
-    TRANSCRIPT_END_PATTERN: re.RegexObject = re.compile(
-        r'\\[Whereupon,'
+    TRANSCRIPT_END_PATTERN = re.compile(
+        r'\[Whereupon,'
     )
-    Speaker: NamedTuple = namedtuple('Speaker', ['name', 'member_id'])
 
-    def parse(self, transcript) -> Tuple[List[Dict], Set[str]]:
+    def parse(self, transcript: List[str]) -> Tuple[List[Dict], Set[str]]:
         transcript_start: int = None
         for i, line in enumerate(transcript):
-            start_match: re.MatchObject = self.TRANSCRIPT_START_PATTERN.search(line)
+            start_match = self.TRANSCRIPT_START_PATTERN.search(line)
             if start_match:
                 transcript_start = i
                 break
         if not transcript_start:
-            raise TranscriptStartMatchException("The beginning of the testimony could not be found.")
+            transcript_start = 0
 
         speakers: set = set()
         output = []
@@ -41,9 +39,9 @@ class Parser:
             transcript[i] = transcript[i].strip()
             line: str = transcript[i]
 
-            end_line: re.MatchObject = self.TRANSCRIPT_END_PATTERN.search(line)
-            statement: re.MatchObject = self.PREPARED_STATEMENT_PATTERN.search(line)
-            contribution: re.MatchObject = self.STANDARD_SPEAKER_PATTERN.search(line)
+            end_line = self.TRANSCRIPT_END_PATTERN.search(line)
+            statement = self.PREPARED_STATEMENT_PATTERN.search(line)
+            contribution = self.STANDARD_SPEAKER_PATTERN.search(line)
 
             if end_line:
                 # must replace carriage return new lines first.
@@ -67,8 +65,8 @@ class Parser:
                 seq += 1
         return output, speakers
 
-    def _configure_speaker(self, regex_match: re.MatchObject) -> str:
+    def _configure_speaker(self, regex_match) -> str:
         return f"{regex_match.group(1).replace('.', '')} {regex_match.group(2).replace('.', '').upper()}"
 
-    def _make_entry(self, lines: list[str]) -> str:
+    def _make_entry(self, lines: List[str]) -> str:
         return " ".join(lines).replace('\r\n', '').replace('\n', '')
