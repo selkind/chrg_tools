@@ -37,6 +37,7 @@ class DB_Handler:
             return {
                 i[0].package_id: i[0].body_hash
                 for i in conn.execute(select(HearingTranscript))
+                if i[0]
             }
 
     def _make_congress_member_hash(self, member) -> str:
@@ -67,6 +68,8 @@ class DB_Handler:
         with Session(self.engine) as session:
             counter = 0
             for i in tqdm(transcripts, 'Adding or updating transcripts to database'):
+                if not transcripts[i]:
+                    continue
                 body_hash = self._make_transcript_body_hash(transcripts[i])
                 if i in self.transcript_cache:
                     if self.transcript_cache[i] == body_hash:
