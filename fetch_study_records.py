@@ -38,15 +38,22 @@ def main():
 
     handler = DB_Handler(engine)
 
-    # with open(os.path.join(
-    #     os.path.abspath(os.path.dirname(__file__)),
-    #     'tests',
-    #     'api_client_data_pickles',
-    #     'summary_package_sample.pickle'
-    # ), 'rb') as f:
-    #     package_summaries = pickle.load(f)
+    with Session(handler.engine) as db:
+        existing_packages = {
+            i[0]: i[1] for i in db.execute(select(Hearing.package_id, Hearing.last_modified))
+        }
 
-    # handler.sync_hearing_records(package_summaries)
+    with open(os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        'tests',
+        'api_client_data_pickles',
+        'summary_package_sample.pickle'
+    ), 'rb') as f:
+        package_summaries = pickle.load(f)
+    
+    unloaded_packages = [i for i in package_summaries if i.package_id not in existing_packages]
+
+    handler.sync_hearing_records(unloaded_packages)
 
     with open(os.path.join(
         os.path.abspath(os.path.dirname(__file__)),
