@@ -2,7 +2,7 @@ from typing import List, Tuple, Dict
 from tqdm.auto import tqdm
 import mmh3
 from sqlalchemy.engine.base import Engine
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 from hearings_lib.db_models import (
     Hearing,
@@ -63,6 +63,19 @@ class DB_Handler:
 
     def _make_hash(self, hash_input: str) -> str:
         return str(mmh3.hash(hash_input, self.HASH_SEED, signed=False))
+
+    def save_parsed_entries(self, package_id: str, entries: List[HearingEntry]) -> None:
+        with Session(self.engine) as session:
+            session.execute(delete(HearingEntry).where(HearingEntry.package_id == package_id))
+            session.commit()
+            counter = 0
+            for i in entries:
+                session.add(entries)
+                counter += 1
+                if counter == 100:
+                    counter = 0
+                    session.commit()
+            session.commit()
 
     def sync_transcripts(self, transcripts: Dict[str, str]) -> None:
         with Session(self.engine) as session:
