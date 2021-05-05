@@ -3,8 +3,6 @@ import sqlalchemy
 import requests
 import csv
 import pickle
-from dateutil.parser import parse as date_parse
-import dateutil.tz
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -50,7 +48,7 @@ def main():
         'summary_package_sample.pickle'
     ), 'rb') as f:
         package_summaries = pickle.load(f)
-    
+
     unloaded_packages = [i for i in package_summaries if i.package_id not in existing_packages]
 
     handler.sync_hearing_records(unloaded_packages)
