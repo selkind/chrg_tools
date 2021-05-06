@@ -14,7 +14,7 @@ class Parser:
         r'^\[The\s+prepared\s+statement\s+of\s+([A-Z,a-z]*\.?)\s+([A-Z,a-z,\-]+)'
     )
     STANDARD_SPEAKER_PATTERN = re.compile(
-        r'^([A-Z][a-z]+\.?)\s+(([A-Z][A-z]+-){0,1}(([A-z]){2,}))\.\s+'
+        r'^([A-Z][a-z]+\.?)\s+(([A-Z][A-z]+-){0,1}([A-Z]([A-z])+))\.\s+'
     )
     TRANSCRIPT_END_PATTERN = re.compile(
         r'\[Whereupon,'
