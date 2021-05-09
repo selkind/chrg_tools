@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "hearings_lib"
+name = "chrg_tools"
 version = "0.1.0"
-description = "Creating a clean dataset, API, and analysis toolset of congressional hearing testimony"
+description = "Tools to work with govinfo's Congressional hearing packages API. Includes API client (bulk metadata and transcript downloader), relational schema for hearing metadata, and in the future, testimony transcript parsing"
 authors = ["Samuel Elkind <samuel.elkind@gmail.com>"]
 
 [tool.poetry.dependencies]
