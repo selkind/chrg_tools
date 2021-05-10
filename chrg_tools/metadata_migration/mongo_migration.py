@@ -2,7 +2,7 @@ import os
 import psycopg2
 import psycopg2.extras
 from mongo_connect import MongoConnect
-from load_project_env import ProjectEnv
+from load_project_env import load_project_env
 
 
 def main():
@@ -50,8 +50,7 @@ def main():
             nominate['member_id'] = member_id
             nominate_values.append([nominate[k] for k in nominate_fields])
 
-    config = ProjectEnv.get_config()
-    ProjectEnv.load_env()
+    config = load_project_env()
     db_config = config['database']
 
     conn = psycopg2.connect(database=db_config['name'],

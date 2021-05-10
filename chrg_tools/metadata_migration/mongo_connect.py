@@ -1,11 +1,11 @@
 from pymongo import MongoClient
-from load_project_env import ProjectEnv
+from load_project_env import load_project_env 
 import os
 
 
 class MongoConnect():
     @staticmethod
     def get_connection():
-        ProjectEnv.load_env()
+        mongo_uri = load_project_env()['mongodb']['uri']
 
-        return MongoClient(os.getenv('MONGOSTRING'))
+        return MongoClient(mongo_uri)

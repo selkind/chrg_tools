@@ -2,12 +2,11 @@ import os
 import csv
 import psycopg2
 import psycopg2.extras
-from load_project_env import ProjectEnv
+from load_project_env import load_project_env
 
 
 def main():
-    ProjectEnv.load_env()
-    config = ProjectEnv.get_config()
+    config = load_project_env()
 
     columns = ['name', 'code', 'chamber']
 

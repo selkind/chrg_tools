@@ -1,10 +1,9 @@
-from load_project_env import ProjectEnv
+from load_project_env import load_project_env
 from db_context_manager import cursor
 
 
 def main():
-    ProjectEnv.load_env()
-    config = ProjectEnv.get_config()
+    config = load_project_env()
     db_config = config['database']
     # This script only works if database 'hearings' exists
     with open(db_config['table_config_path']) as sql_file:

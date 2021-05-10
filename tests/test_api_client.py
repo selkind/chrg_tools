@@ -5,7 +5,7 @@ import datetime
 import dateutil.tz
 import pytest
 import responses
-from hearings_lib.hearings.load_project_env import ProjectEnv
+from hearings_lib.hearings.load_project_env import load_project_env
 from hearings_lib.api_client import APIClient
 
 
@@ -116,7 +116,7 @@ class TestAPIClient:
 
     @pytest.mark.webtest
     def test_api_response_for_huge_offset(self):
-        ProjectEnv.load_env()
+        load_project_env()
         api_client = APIClient(os.getenv('GPO_API_KEY'))
         assert api_client.DEFAULT_LAST_MODIFIED_START_DATE == "1776-01-01T00:00:00Z"
         params = {

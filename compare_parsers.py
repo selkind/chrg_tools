@@ -6,7 +6,7 @@ csv.field_size_limit(sys.maxsize)
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from hearings_lib.hearings.load_project_env import ProjectEnv
+from hearings_lib.hearings.load_project_env import load_project_env
 from hearings_lib.transcript_parser import Parser
 from hearings_lib.db_models import (
     Base,
@@ -16,8 +16,7 @@ from hearings_lib.db_handler import DB_Handler
 
 
 def main():
-    ProjectEnv.load_env()
-    config = ProjectEnv.get_config()
+    config = load_project_env()
     db_config = config['govinfo_db']
     # Python automatically concatenates strings within brackets that aren't comma-separated.
     # This string definition is broken up due to line-length

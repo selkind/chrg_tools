@@ -1,13 +1,12 @@
 import os
-from load_project_env import ProjectEnv
+from load_project_env import load_project_env
 from db_context_manager import cursor
 from hearings_lib.gpo_tools.gpo_tools.parse import Parser
 import psycopg2.extras
 
 
 def main():
-    ProjectEnv.load_env()
-    config = ProjectEnv.get_config()
+    config = load_project_env()
     db_config = config['database']
 
     parser = Parser(
