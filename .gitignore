@@ -9,7 +9,7 @@
 *.log
 *.zip
 current/**
-tests/*.sql
+tests/sql_dumps/*
 tests/sample_transcripts/*
 
 # env file

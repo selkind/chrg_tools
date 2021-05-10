@@ -6,7 +6,7 @@ import dateutil.tz
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from hearings_lib.hearings.load_project_env import ProjectEnv
+from hearings_lib.hearings.load_project_env import load_project_env
 from hearings_lib.db_models import (
     Base,
     Hearing
@@ -15,15 +15,15 @@ from hearings_lib.db_handler import DB_Handler
 from hearings_lib.api_client import APIClient
 
 
-def main():
-    ProjectEnv.load_env()
-    config = ProjectEnv.get_config()
+def get_package_summaries_by_congress(congress: int, config_directory: str = ''):
+    config = load_project_env(config_directory)
     db_config = config['govinfo_db']
     # Python automatically concatenates strings within brackets that aren't comma-separated.
     # This string definition is broken up due to line-length
     connection_uri = (
-        'postgresql+psycopg2://'
-        f'{db_config["user"]}'
+        f'{db_config["db_type"]}'
+        f'+{db_config["db_driver"]}'
+        f'://{db_config["user"]}'
         f':{os.getenv("DB_POSTGRES_PW")}@{db_config["host"]}/{db_config["name"]}'
     )
 
@@ -52,7 +52,3 @@ def main():
         package_summaries = client.get_package_summaries(packages=packages)
 
     handler.sync_hearing_records(package_summaries)
-
-
-if __name__ == '__main__':
-    main()
