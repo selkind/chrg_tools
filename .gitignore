@@ -14,3 +14,6 @@ tests/sample_transcripts/*
 
 # env file
 **.env
+
+# gpo_tools parser
+chrg_tools/parse.py
