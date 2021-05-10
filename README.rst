@@ -17,9 +17,7 @@ On the Horizon:
 
 Installation
 -------------
-This library is available on PyPi. To install run the following command: 
-
-    pip install chrg-tools
+This library is not yet published to PyPi. To use, clone or download a zip of this repository.
 
 Getting Started (Coming Soon)
 --------------------------------------
