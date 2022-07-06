@@ -17,7 +17,7 @@ SQLAlchemy = "^1.4.8"
 testcontainers = {extras = ["postgres"], version = "^3.4.0"}
 pytest = "^6.2.3"
 responses = "^0.13.2"
-lxml = "^4.6.3"
+lxml = "^4.9.1"
 tqdm = "^4.60.0"
 python-dateutil = "^2.8.1"
 mmh3 = "^3.0.0"
